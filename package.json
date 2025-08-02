@@ -1,59 +1,62 @@
 {
-    "name": "@levi2ki/source",
-    "version": "0.0.0",
-    "license": "MIT",
-    "scripts": {},
-    "private": true,
-    "devDependencies": {
-        "@nx/eslint": "^21.3.10",
-        "@nx/eslint-plugin": "21.3.10",
-        "@nx/jest": "21.3.10",
-        "@nx/js": "^21.3.10",
-        "@nx/rollup": "21.3.10",
-        "@swc-node/register": "~1.9.1",
-        "@swc/cli": "~0.6.0",
-        "@swc/core": "~1.5.7",
-        "@swc/helpers": "~0.5.11",
-        "@swc/jest": "~0.2.38",
-        "@types/jest": "^30.0.0",
-        "@types/node": "18.16.9",
-        "@typescript-eslint/eslint-plugin": "^7.16.0",
-        "@typescript-eslint/parser": "^7.16.0",
-        "eslint": "~8.57.0",
-        "eslint-config-prettier": "^10.0.0",
-        "jest": "^30.0.2",
-        "jest-environment-node": "^30.0.2",
-        "jest-util": "^30.0.2",
-        "jsonc-eslint-parser": "^2.1.0",
-        "nx": "21.3.10",
-        "prettier": "^2.6.2",
-        "rollup": "^4.14.0",
-        "swc-loader": "0.1.15",
-        "ts-jest": "^29.4.0",
-        "ts-node": "10.9.1",
-        "tslib": "^2.3.0",
-        "typescript": "~5.8.2",
-        "verdaccio": "^6.0.5"
-    },
-    "workspaces": [
-        "packages/rbac-core",
-        "packages/rbac-expression"
-    ],
-    "dependencies": {
-        "@levi2ki/rbac-core": "^0.0.1",
-        "fp-ts": "^2.16.10"
-    },
-    "nx": {
-        "includedScripts": [],
-        "targets": {
-            "local-registry": {
-                "executor": "@nx/js:verdaccio",
-                "options": {
-                    "port": 4873,
-                    "config": ".verdaccio/config.yml",
-                    "storage": "tmp/local-registry/storage"
-                }
-            }
+  "name": "@levi2ki/source",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "private": true,
+  "devDependencies": {
+    "@nx/eslint": "^21.3.10",
+    "@nx/eslint-plugin": "21.3.10",
+    "@nx/jest": "21.3.10",
+    "@nx/js": "^21.3.10",
+    "@nx/rollup": "21.3.10",
+    "@swc-node/register": "~1.9.1",
+    "@swc/cli": "~0.6.0",
+    "@swc/core": "~1.5.7",
+    "@swc/helpers": "~0.5.11",
+    "@swc/jest": "~0.2.38",
+    "@types/jest": "^30.0.0",
+    "@types/node": "18.16.9",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "eslint": "~8.57.0",
+    "eslint-config-prettier": "^10.0.0",
+    "husky": "^9.1.7",
+    "jest": "^30.0.2",
+    "jest-environment-node": "^30.0.2",
+    "jest-util": "^30.0.2",
+    "jsonc-eslint-parser": "^2.1.0",
+    "nx": "21.3.10",
+    "prettier": "^2.6.2",
+    "rollup": "^4.14.0",
+    "swc-loader": "0.1.15",
+    "ts-jest": "^29.4.0",
+    "ts-node": "10.9.1",
+    "tslib": "^2.3.0",
+    "typescript": "~5.8.2",
+    "verdaccio": "^6.0.5"
+  },
+  "workspaces": [
+    "packages/rbac-core",
+    "packages/rbac-expression"
+  ],
+  "dependencies": {
+    "@levi2ki/rbac-core": "^0.0.1",
+    "fp-ts": "^2.16.10"
+  },
+  "nx": {
+    "includedScripts": [],
+    "targets": {
+      "local-registry": {
+        "executor": "@nx/js:verdaccio",
+        "options": {
+          "port": 4873,
+          "config": ".verdaccio/config.yml",
+          "storage": "tmp/local-registry/storage"
         }
+      }
     }
+  }
 }
