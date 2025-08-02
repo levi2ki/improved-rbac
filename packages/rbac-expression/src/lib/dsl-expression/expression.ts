@@ -1,6 +1,7 @@
 import { Reader } from 'fp-ts/Reader';
 import { type Module, type Registry, type ModulePermissions } from '@levi2ki/rbac-core';
-// import { pipe } from 'fp-ts/function';
+import { constFalse, pipe } from 'fp-ts/function';
+import { type Option, flatten, fromNullable, match } from 'fp-ts/Option';
 
 type GenericRegistry = Registry<Record<string, Module<any, string>>>;
 
@@ -16,41 +17,53 @@ function split<F extends Scopes<any>>(p: NoInfer<F>): [scope: GetScope<F>, permi
     return p.split('.') as [GetScope<F>, GetPermission<F>];
 }
 
+const and =
+    <GenericReader extends Reader<any, boolean>, O extends Parameters<GenericReader>[0]>(
+        expr: Array<GenericReader>
+    ): Reader<{ [K in keyof UnionToIntersection<O>]: UnionToIntersection<O>[K] }, boolean> =>
+    (layer) => {
+        return expr.reduce((init, next) => init && next(layer), true);
+    };
+
+const or =
+    <GenericReader extends Reader<any, boolean>, O extends Parameters<GenericReader>[0]>(
+        expr: Array<GenericReader>
+    ): Reader<{ [K in keyof UnionToIntersection<O>]: UnionToIntersection<O>[K] }, boolean> =>
+    (layer) => {
+        return expr.reduce((init, next) => init || next(layer), false);
+    };
+
 export function createExpression<Reg extends GenericRegistry>(registry: Reg) {
     const has =
         <F extends Scopes<Reg>>(p: F) =>
         (layer: {
-            [K in GetScope<F>]: Array<ModulePermissions<Reg['modules'][K]>>;
+            [K in GetScope<F>]: Option<Array<ModulePermissions<Reg['modules'][K]>>>;
         }): boolean => {
             const [scope, permission] = split<F>(p);
 
-            return layer[scope].includes(permission);
+            const maybeScope = fromNullable(layer[scope]);
+
+            return pipe(
+                maybeScope,
+                flatten,
+                match(constFalse, (p) => p.includes(permission))
+            );
         };
 
     const not =
         <F extends Scopes<Reg>>(p: F) =>
         (layer: {
-            [K in GetScope<F>]: Array<ModulePermissions<Reg['modules'][K]>>;
+            [K in GetScope<F>]: Option<Array<ModulePermissions<Reg['modules'][K]>>>;
         }) => {
             const [scope, permission] = split<F>(p);
 
-            return !layer[scope].includes(permission);
-        };
+            const maybeScope = fromNullable(layer[scope]);
 
-    const and =
-        <GenericReader extends Reader<any, boolean>, O extends Parameters<GenericReader>[0]>(
-            expr: Array<GenericReader>
-        ): Reader<{ [K in keyof UnionToIntersection<O>]: UnionToIntersection<O>[K] }, boolean> =>
-        (layer) => {
-            return expr.reduce((init, next) => init && next(layer), true);
-        };
-
-    const or =
-        <GenericReader extends Reader<any, boolean>, O extends Parameters<GenericReader>[0]>(
-            expr: Array<GenericReader>
-        ): Reader<{ [K in keyof UnionToIntersection<O>]: UnionToIntersection<O>[K] }, boolean> =>
-        (layer) => {
-            return expr.reduce((init, next) => init || next(layer), false);
+            return pipe(
+                maybeScope,
+                flatten,
+                match(constFalse, (p) => !p.includes(permission))
+            );
         };
 
     return { has, not, and, or };

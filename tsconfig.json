@@ -1,13 +1,13 @@
 {
-  "extends": "./tsconfig.base.json",
-  "compileOnSave": false,
-  "files": [],
-  "references": [
-    {
-      "path": "./packages/rbac-core"
-    },
-    {
-      "path": "./packages/rbac-expression"
-    }
-  ]
+    "extends": "./tsconfig.base.json",
+    "compileOnSave": false,
+    "files": [],
+    "references": [
+        {
+            "path": "./packages/rbac-core"
+        },
+        {
+            "path": "./packages/rbac-expression"
+        }
+    ]
 }

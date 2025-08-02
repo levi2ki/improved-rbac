@@ -15,17 +15,13 @@ module.exports = {
             sourcemap: false,
         },
     ],
+    external: ['fp-ts'],
     input: path.resolve(__dirname, `src/index.ts`),
     plugins: [
-        require('@rollup/plugin-node-resolve')(),
         require('@rollup/plugin-commonjs')(),
         require('@rollup/plugin-typescript')({
-            // exclude: ['node_modules/**'],
             tsconfig: path.resolve(__dirname, 'tsconfig.lib.json'),
             declaration: true,
-            compilerOptions: {
-                sourceMap: false,
-            }
-        })
-    ]
+        }),
+    ],
 };

@@ -18,7 +18,7 @@
     "dist",
     "!**/*.tsbuildinfo"
   ],
-  "dependencies": {
-    "@levi2ki/rbac-core": "workspace:*"
+  "devDependencies": {
+    "@levi2ki/rbac-core": "^0.0.1"
   }
 }

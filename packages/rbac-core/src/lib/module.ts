@@ -1,6 +1,6 @@
 export interface Module<Permissions, ModuleName extends string> {
     /**
-     * хитрый хак с вытаскиванием параметризованных типов - в рантайме ничего не делать и **рекомендуется к игнорированию в рантайме**.
+     * hidden type for type inference
      * @internal
      */
     readonly __A: Permissions;
