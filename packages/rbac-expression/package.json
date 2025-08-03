@@ -1,25 +1,25 @@
 {
-  "name": "@levi2ki/rbac-expression",
-  "version": "0.0.1",
-  "type": "module",
-  "main": "./dist/index.esm.js",
-  "module": "./dist/index.esm.js",
-  "types": "./dist/index.esm.d.ts",
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "development": "./src/index.ts",
-      "types": "./dist/index.esm.d.ts",
-      "import": "./dist/index.esm.js",
-      "default": "./dist/index.esm.js"
-    }
-  },
-  "files": [
-    "dist",
-    "!**/*.tsbuildinfo"
-  ],
+    "name": "@levi2ki/rbac-expression",
+    "version": "0.0.1",
+    "type": "module",
+    "main": "./dist/index.esm.js",
+    "module": "./dist/index.esm.js",
+    "types": "./dist/index.esm.d.ts",
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "development": "./src/index.ts",
+            "types": "./dist/index.esm.d.ts",
+            "import": "./dist/index.esm.js",
+            "default": "./dist/index.esm.js"
+        }
+    },
+    "files": [
+        "dist",
+        "!**/*.tsbuildinfo"
+    ],
     "dependencies": {
-        "@levi2ki/rbac-core": "^0.0.1",
+        "@levi2ki/rbac-core": "workspace:^*",
         "fp-ts": "^2.16.10"
     }
 }

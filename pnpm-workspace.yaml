@@ -1,0 +1,8 @@
+packages:
+  - packages/rbac-core
+  - packages/rbac-expression
+
+onlyBuiltDependencies:
+  - '@swc/core'
+  - nx
+  - unrs-resolver

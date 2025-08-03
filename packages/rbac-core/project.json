@@ -1,9 +1,9 @@
 {
-  "name": "@levi2ki/rbac-core",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/rbac-core/src",
-  "projectType": "library",
-  "tags": [],
-  "// targets": "to see all targets run: nx show project @levi2ki/rbac-core --web",
-  "targets": {}
+    "name": "@levi2ki/rbac-core",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/rbac-core/src",
+    "projectType": "library",
+    "tags": [],
+    "// targets": "to see all targets run: nx show project @levi2ki/rbac-core --web",
+    "targets": {}
 }
