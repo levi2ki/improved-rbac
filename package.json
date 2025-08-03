@@ -12,6 +12,8 @@
         "@nx/jest": "^21.3.11",
         "@nx/js": "^21.3.11",
         "@nx/rollup": "^21.3.11",
+        "@rollup/plugin-commonjs": "^28.0.6",
+        "@rollup/plugin-typescript": "^12.1.4",
         "@swc-node/register": "~1.9.1",
         "@swc/cli": "~0.6.0",
         "@swc/core": "~1.5.7",
