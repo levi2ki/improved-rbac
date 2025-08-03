@@ -18,7 +18,8 @@
     "dist",
     "!**/*.tsbuildinfo"
   ],
-  "devDependencies": {
-    "@levi2ki/rbac-core": "^0.0.1"
-  }
+    "dependencies": {
+        "@levi2ki/rbac-core": "^0.0.1",
+        "fp-ts": "^2.16.10"
+    }
 }

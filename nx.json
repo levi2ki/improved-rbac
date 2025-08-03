@@ -19,7 +19,10 @@
             "dependsOn": ["^build"]
         },
         "test": {
-            "dependsOn": ["^build"]
+            "dependsOn": ["^build"],
+            "options": {
+                "passWithNoTests": true
+            }
         }
     },
     "release": {
@@ -73,8 +76,7 @@
         {
             "plugin": "@nx/jest/plugin",
             "options": {
-                "targetName": "test",
-                "passWithNoTests": true
+                "targetName": "test"
             }
         }
     ]
