@@ -31,7 +31,7 @@ jobs:
       # Cache node_modules
       - uses: pnpm/action-setup@v4
         with:
-          version: 9.15.0
+          version: 10
 
       - name: Use Node.js
         uses: actions/setup-node@v4
