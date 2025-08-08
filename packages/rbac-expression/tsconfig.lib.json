@@ -22,5 +22,5 @@
             "path": "../rbac-core/tsconfig.lib.json"
         }
     ],
-    "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]
+    "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts", "src/**/*.mock.ts"]
 }

@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@levi2ki/rbac-core':
-        specifier: workspace:^*
-        version: link:packages/rbac-core
       fp-ts:
         specifier: ^2.16.10
         version: 2.16.10
@@ -117,7 +114,7 @@ importers:
   packages/rbac-expression:
     dependencies:
       '@levi2ki/rbac-core':
-        specifier: workspace:^*
+        specifier: workspace:^
         version: link:../rbac-core
       fp-ts:
         specifier: ^2.16.10

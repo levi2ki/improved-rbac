@@ -27,12 +27,13 @@
         }
     },
     "release": {
+        "projects": ["rbac-expression", "rbac-core"],
         "projectsRelationship": "fixed",
-        "releaseTagPattern": "{version}",
+        "releaseTagPattern": "{packageName}-{version}",
         "version": {
-            "preVersionCommand": "npx nx run-many -t build",
+            "preVersionCommand": "pnpm dlx nx run-many -t build",
             "conventionalCommits": true,
-            "manifestRootsToUpdate": ["dist/packages/{projectName}"],
+            "manifestRootsToUpdate": ["{projectRoot}"],
             "changelog": {
                 "workspaceChangelog": false,
                 "projectChangelogs": true
