@@ -49,6 +49,7 @@
         "packages/rbac-expression"
     ],
     "dependencies": {
+        "@swc/wasm": "^1.13.3",
         "fp-ts": "^2.16.10"
     },
     "nx": {

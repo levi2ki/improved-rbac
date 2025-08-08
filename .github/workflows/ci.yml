@@ -10,6 +10,9 @@ permissions:
   actions: read
   contents: read
 
+env:
+  SWC_FORCE_WASM: 1
+
 jobs:
   main:
     runs-on: ubuntu-latest
