@@ -38,6 +38,12 @@ jobs:
         with:
           node-version: 20
           cache: 'pnpm'
+
+      - name: Configure pnpm for Nx compatibility
+        run: |
+          echo "node-linker=hoisted" >> .npmrc
+          echo "shamefully-hoist=true" >> .npmrc
+
       # - name: Approve builds (if necessary)
       # run: pnpm approve-builds
       - name: Install dependencies
