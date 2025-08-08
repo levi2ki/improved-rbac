@@ -12,6 +12,7 @@ permissions:
 
 env:
   SWC_FORCE_WASM: 1
+  NX_DAEMON: 'false'
 
 jobs:
   main:
