@@ -43,14 +43,17 @@ jobs:
         run: |
           echo "node-linker=hoisted" >> .npmrc
           echo "shamefully-hoist=true" >> .npmrc
+          echo "public-hoist-pattern[]=@swc/core" >> .npmrc
+          echo "public-hoist-pattern[]=@swc/helpers" >> .npmrc
+          echo "public-hoist-pattern[]=nx" >> .npmrc
 
       # - name: Approve builds (if necessary)
       # run: pnpm approve-builds
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
-      - run: npx nx run-many -t lint test build --verbose
+      - run: pnpm dlx nx run-many -t lint test build --verbose
       # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
 #      - run: npx nx fix-ci
 #        if: always()
