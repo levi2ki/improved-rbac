@@ -10,6 +10,10 @@ permissions:
   actions: read
   contents: read
 
+env:
+  SWC_FORCE_WASM: 1
+  NX_DAEMON: 'false'
+
 jobs:
   main:
     runs-on: ubuntu-latest
@@ -35,10 +39,19 @@ jobs:
         with:
           node-version: 20
           cache: 'pnpm'
+
+      - name: Configure pnpm for Nx compatibility
+        run: |
+          echo "node-linker=hoisted" >> .npmrc
+          echo "shamefully-hoist=true" >> .npmrc
+          echo "public-hoist-pattern[]=@swc/core" >> .npmrc
+          echo "public-hoist-pattern[]=@swc/helpers" >> .npmrc
+          echo "public-hoist-pattern[]=nx" >> .npmrc
+
       # - name: Approve builds (if necessary)
       # run: pnpm approve-builds
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
       - run: pnpm dlx nx run-many -t lint test build --verbose

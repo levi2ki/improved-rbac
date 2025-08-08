@@ -19,7 +19,7 @@
         "!**/*.tsbuildinfo"
     ],
     "dependencies": {
-        "@levi2ki/rbac-core": "workspace:^*",
+        "@levi2ki/rbac-core": "workspace:^",
         "fp-ts": "^2.16.10"
     }
 }
