@@ -5,6 +5,10 @@
     "scripts": {
         "prepare": "husky"
     },
+    "engines": {
+        "node": ">=20.10.0",
+        "pnpm": ">=9.15.0"
+    },
     "private": true,
     "devDependencies": {
         "@nx/eslint": "^21.3.11",
@@ -45,9 +49,10 @@
         "packages/rbac-expression"
     ],
     "dependencies": {
-        "@levi2ki/rbac-core": "workspace:^*",
+        "@swc/wasm": "^1.13.3",
         "fp-ts": "^2.16.10"
     },
+    "packageManager": "pnpm@9.15.0",
     "nx": {
         "includedScripts": [],
         "targets": {
