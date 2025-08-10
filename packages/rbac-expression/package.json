@@ -1,6 +1,7 @@
 {
     "name": "@levi2ki/rbac-expression",
     "version": "0.0.1",
+    "license": "MIT",
     "type": "module",
     "main": "./dist/index.esm.js",
     "module": "./dist/index.esm.js",
