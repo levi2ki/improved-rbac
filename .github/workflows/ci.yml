@@ -5,6 +5,8 @@ on:
     branches:
       - main
   pull_request:
+  # release:
+  #   types: [created]
 
 permissions:
   actions: read
@@ -23,16 +25,10 @@ jobs:
           filter: tree:0
           fetch-depth: 0
 
-      # This enables task distribution via Nx Cloud
-      # Run this command as early as possible, before dependencies are installed
-      # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
-      # Uncomment this line to enable task distribution
-      # - run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build"
-
       # Cache node_modules
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 9.15.0
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -40,21 +36,24 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Configure pnpm for Nx compatibility
-        run: |
-          echo "node-linker=hoisted" >> .npmrc
-          echo "shamefully-hoist=true" >> .npmrc
-          echo "public-hoist-pattern[]=@swc/core" >> .npmrc
-          echo "public-hoist-pattern[]=@swc/helpers" >> .npmrc
-          echo "public-hoist-pattern[]=nx" >> .npmrc
-
       # - name: Approve builds (if necessary)
       # run: pnpm approve-builds
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
-      # - run: npx nx-cloud record -- echo Hello World
-      - run: pnpm dlx nx run-many -t lint test build --verbose
-      # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
-#      - run: npx nx fix-ci
-#        if: always()
+
+      - name: Run lint
+        run: pnpm dlx nx run-many -t lint --verbose
+
+      - name: Run tests
+        run: pnpm dlx nx run-many -t test --verbose
+
+      - name: Run build
+        run: pnpm dlx nx run-many -t build --verbose
+
+      - name: Publish
+        if: github.event_name == 'release'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+        run: |
+          pnpm dlx nx release publish --verbose

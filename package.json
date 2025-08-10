@@ -52,6 +52,7 @@
         "@swc/wasm": "^1.13.3",
         "fp-ts": "^2.16.10"
     },
+    "packageManager": "pnpm@9.15.0",
     "nx": {
         "includedScripts": [],
         "targets": {

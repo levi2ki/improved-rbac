@@ -4,7 +4,7 @@ import * as Option from 'fp-ts/Option';
 import { createModule, getDefaultRegistry, register } from '@levi2ki/rbac-core';
 import { createExpression } from './expression';
 import { EUserPermissions, ETeamPermissions, ESupportPermissions } from './__mocks__/permissions.mock';
-import { createLargeTestContext } from './__mocks__/test-data.mock';
+import { createLargeTestContext, measurePerformance } from './__mocks__/test-data.mock';
 
 const testRegistry = pipe(
     getDefaultRegistry(),
@@ -367,13 +367,13 @@ describe('RBAC Operators V2', () => {
             it('should handle large permission arrays efficiently', () => {
                 const context = createLargeTestContext();
 
-                const startTime = performance.now();
                 // Use last permission from large test context for testing all array length loops
-                const result = has('user.AUTHORIZE_SELF_ACCELERATION_10')(context);
-                const endTime = performance.now();
+                const { result, duration } = measurePerformance(() =>
+                    has('user.AUTHORIZE_SELF_ACCELERATION_10')(context)
+                );
 
                 expect(result).toBe(true);
-                expect(endTime - startTime).toBeLessThan(3); // Should complete in less than 3ms
+                expect(duration).toBeLessThan(3); // Should complete in less than 3ms
             });
 
             it('should handle deeply nested expressions', () => {
