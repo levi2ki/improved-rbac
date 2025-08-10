@@ -1,90 +1,193 @@
-# Temp
+# improved-rbac
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A modern, type-safe Role-Based Access Control (RBAC) system built with TypeScript and functional programming principles. This monorepo provides a comprehensive solution for implementing robust permission systems in your applications.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+## 🚀 What's Inside
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+### **@levi2ki/rbac-core** - Foundation Library
 
-## Finish your CI setup
+The core RBAC system that provides the building blocks for permission management:
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/QDM0aWjLzw)
+-   Module and registry system
+-   Permission definitions and validation
+-   Extensible architecture for custom permission types
 
+### **@levi2ki/rbac-expression** - DSL for Complex Permissions ⭐
 
-## Generate a library
+A powerful Domain Specific Language for building complex permission expressions with full type safety:
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+```typescript
+import { createExpression } from '@levi2ki/rbac-expression';
+import { createModule, getDefaultRegistry, register } from '@levi2ki/rbac-core';
+import { pipe } from 'fp-ts/function';
+import * as Option from 'fp-ts/Option';
+
+// Define permissions
+enum UserPermissions {
+    READ = 'READ',
+    WRITE = 'WRITE',
+    DELETE = 'DELETE',
+    ADMIN = 'ADMIN',
+}
+
+enum TeamPermissions {
+    MANAGE = 'MANAGE',
+    VIEW = 'VIEW',
+}
+
+// Create registry
+const registry = pipe(getDefaultRegistry(), register(createModule<UserPermissions>()('user')), register(createModule<TeamPermissions>()('team')));
+
+// Create expressions
+const { has, not, and, or } = createExpression(registry);
+
+// Build complex permission logic
+const canEditSensitiveData = and([has('user.WRITE'), or([has('user.ADMIN'), has('team.MANAGE')]), not('user.RESTRICTED')]);
+
+// Evaluate against user context
+const userContext = {
+    user: Option.some([UserPermissions.WRITE, UserPermissions.ADMIN]),
+    team: Option.some([TeamPermissions.VIEW]),
+};
+
+const result = canEditSensitiveData(userContext);
+console.log(result); // true
 ```
 
-## Run tasks
+**✨ Key Features:**
 
-To build the library use:
+-   **Type-safe expressions** with full TypeScript support
+-   **Functional composition** using Reader monads
+-   **Composable operators** (`has`, `not`, `and`, `or`)
+-   **Performance optimized** for large permission sets
+-   **Zero runtime dependencies** beyond core libraries
 
-```sh
-npx nx build pkg1
+**[📖 Read More →](./packages/rbac-expression/README.md)**
+
+### **@levi2ki/rbac-react** - React Integration (Coming Soon! 🚧)
+
+React hooks and components for seamless RBAC integration in React applications:
+
+-   `usePermissions()` hook for permission checking
+-   `<PermissionGate>` component for conditional rendering
+-   Context providers for permission management
+-   HOCs for higher-order component patterns
+
+## 🛠️ Installation
+
+```bash
+# Install the entire monorepo
+pnpm add @levi2ki/rbac-core @levi2ki/rbac-expression
+
+# Or install individual packages
+pnpm add @levi2ki/rbac-core
+pnpm add @levi2ki/rbac-expression
 ```
 
-To run any task with Nx use:
+## 🚀 Quick Start
 
-```sh
-npx nx <target> <project-name>
+1. **Set up your permission modules:**
+
+```typescript
+import { createModule, getDefaultRegistry, register } from '@levi2ki/rbac-core';
+
+const registry = pipe(getDefaultRegistry(), register(createModule<UserPermissions>()('user')), register(createModule<TeamPermissions>()('team')));
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+2. **Create expressions:**
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```typescript
+import { createExpression } from '@levi2ki/rbac-expression';
 
-## Versioning and releasing
+const { has, and, or } = createExpression(registry);
 
-To version and release the library use
-
-```
-npx nx release
+const canAccessAdminPanel = and([has('user.ADMIN'), or([has('user.SUPER_USER'), has('team.ADMIN')])]);
 ```
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+3. **Evaluate permissions:**
 
-[Learn more about Nx release &raquo;](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```typescript
+const userContext = {
+    user: Option.some([UserPermissions.ADMIN]),
+    team: Option.some([TeamPermissions.VIEW]),
+};
 
-## Keep TypeScript project references up to date
-
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-npx nx sync
+const hasAccess = canAccessAdminPanel(userContext);
 ```
 
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
+## 🏗️ Architecture
 
-```sh
-npx nx sync:check
+```
+improved-rbac/
+├── packages/
+│   ├── rbac-core/          # Core RBAC system
+│   ├── rbac-expression/    # DSL for complex permissions
+│   └── rbac-react/         # React integration (coming soon)
+├── examples/               # Usage examples
+└── docs/                  # Documentation
 ```
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+## 🧪 Development
 
+This is a monorepo built with [Nx](https://nx.dev) and managed with [pnpm](https://pnpm.io).
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+# Install dependencies
+pnpm install
 
-## Install Nx Console
+# Run tests
+nx test
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+# Build packages
+nx build
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+# Run linting
+nx lint
+```
 
-## Useful links
+## 📚 Documentation
 
-Learn more:
+-   **[Core Library](./packages/rbac-core/README.md)** - Foundation and architecture
+-   **[Expression DSL](./packages/rbac-expression/README.md)** - Complex permission expressions
+-   **[React Integration](./packages/rbac-react/README.md)** - Coming soon!
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 🤝 Contributing
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
+
+### Development Setup
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Run tests: `nx test`
+5. Commit your changes: `git commit -m 'feat: add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🗺️ Roadmap
+
+-   [x] Core RBAC system (`@levi2ki/rbac-core`)
+-   [x] Expression DSL (`@levi2ki/rbac-expression`)
+-   [ ] React integration (`@levi2ki/rbac-react`)
+-   [ ] NestJS integration (`@levi2ki/rbac-nest`)
+-   [ ] Vue.js integration
+-   [ ] Angular integration
+-   [ ] GraphQL directives
+-   [ ] Database adapters
+-   [ ] Performance benchmarks
+-   [ ] Migration guides
+
+## 🙏 Acknowledgments
+
+-   Built with [fp-ts](https://gcanti.github.io/fp-ts/) for functional programming utilities
+-   Powered by [Nx](https://nx.dev) for monorepo management
+-   Type-safe by [TypeScript](https://www.typescriptlang.org/)
+
+---
+
+**Ready to build robust permission systems?** Start with [@levi2ki/rbac-core](./packages/rbac-core/README.md) for the foundation, then explore [@levi2ki/rbac-expression](./packages/rbac-expression/README.md) for complex permission logic! 🚀
