@@ -28,7 +28,7 @@
     },
     "release": {
         "projects": ["rbac-expression", "rbac-core"],
-        "projectsRelationship": "fixed",
+        "projectsRelationship": "independent",
         "releaseTagPattern": "{packageName}-{version}",
         "version": {
             "preVersionCommand": "pnpm dlx nx run-many -t build",
