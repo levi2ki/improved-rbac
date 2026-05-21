@@ -1,10 +1,10 @@
 import { pipe } from 'fp-ts/function';
-import * as Option from 'fp-ts/Option';
 
 import { createModule, getDefaultRegistry, register } from '@levi2ki/rbac-core';
 import { createExpression } from './expression';
 import { EUserPermissions, ETeamPermissions, ESupportPermissions } from './__mocks__/permissions.mock';
 import { createLargeTestContext, measurePerformance } from './__mocks__/test-data.mock';
+import { resolved, unresolved } from '../grant-state';
 
 const testRegistry = pipe(
     getDefaultRegistry(),
@@ -26,18 +26,18 @@ describe('RBAC Operators V2', () => {
 
         describe('has operator', () => {
             it('should return true if permission exists', () => {
-                const context = { user: Option.some([EUserPermissions.READ]) };
+                const context = { user: resolved([EUserPermissions.READ]) };
                 expect(has('user.READ')(context)).toBe(true);
             });
 
             it('should return false if permission does not exist', () => {
-                const context = { user: Option.some([EUserPermissions.READ]) };
+                const context = { user: resolved([EUserPermissions.READ]) };
                 expect(has('user.WRITE')(context)).toBe(false);
                 expect(has('user.VIEW')(context)).toBe(false);
             });
 
             it('should return false if context is empty', () => {
-                const context = { user: Option.none };
+                const context = { user: unresolved };
                 expect(has('user.READ')(context)).toBe(false);
             });
 
@@ -53,7 +53,7 @@ describe('RBAC Operators V2', () => {
 
             it('should handle multiple permissions in context', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ, EUserPermissions.WRITE, EUserPermissions.UPDATE]),
+                    user: resolved([EUserPermissions.READ, EUserPermissions.WRITE, EUserPermissions.UPDATE]),
                 };
                 expect(has('user.READ')(context)).toBe(true);
                 expect(has('user.WRITE')(context)).toBe(true);
@@ -64,15 +64,15 @@ describe('RBAC Operators V2', () => {
             });
 
             it('should handle empty permissions array', () => {
-                const context = { user: Option.some([]) };
+                const context = { user: resolved<EUserPermissions>([]) };
                 expect(has('user.READ')(context)).toBe(false);
             });
 
             it('should work with different scopes', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ]),
-                    team: Option.some([ETeamPermissions.WRITE]),
-                    support: Option.some([ESupportPermissions.UPDATE]),
+                    user: resolved([EUserPermissions.READ]),
+                    team: resolved([ETeamPermissions.WRITE]),
+                    support: resolved([ESupportPermissions.UPDATE]),
                 };
                 expect(has('user.READ')(context)).toBe(true);
                 expect(has('team.WRITE')(context)).toBe(true);
@@ -83,17 +83,17 @@ describe('RBAC Operators V2', () => {
 
         describe('not operator', () => {
             it('should return true if permission does not exist', () => {
-                const context = { user: Option.some([EUserPermissions.UPDATE]) };
+                const context = { user: resolved([EUserPermissions.UPDATE]) };
                 expect(not('user.READ')(context)).toBe(true);
             });
 
             it('should return false if permission exists', () => {
-                const context = { user: Option.some([EUserPermissions.UPDATE]) };
+                const context = { user: resolved([EUserPermissions.UPDATE]) };
                 expect(not('user.UPDATE')(context)).toBe(false);
             });
 
             it('should return false if context is empty', () => {
-                const context = { user: Option.none };
+                const context = { user: unresolved };
                 expect(not('user.READ')(context)).toBe(false);
             });
 
@@ -109,7 +109,7 @@ describe('RBAC Operators V2', () => {
 
             it('should handle multiple permissions in context', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ, EUserPermissions.WRITE]),
+                    user: resolved([EUserPermissions.READ, EUserPermissions.WRITE]),
                 };
                 expect(not('user.READ')(context)).toBe(false);
                 expect(not('user.WRITE')(context)).toBe(false);
@@ -117,36 +117,36 @@ describe('RBAC Operators V2', () => {
             });
 
             it('should handle empty permissions array', () => {
-                const context = { user: Option.some([]) };
+                const context = { user: resolved<EUserPermissions>([]) };
                 expect(not('user.READ')(context)).toBe(true);
             });
         });
 
         describe('or operator', () => {
             it('should return true if any permission exists', () => {
-                const context = { user: Option.some([EUserPermissions.READ, EUserPermissions.WRITE]) };
+                const context = { user: resolved([EUserPermissions.READ, EUserPermissions.WRITE]) };
                 expect(or([has('user.READ'), has('user.WRITE')])(context)).toBe(true);
             });
 
             it('should return false if all permissions do not exist', () => {
-                const context = { user: Option.some([EUserPermissions.READ]) };
+                const context = { user: resolved([EUserPermissions.READ]) };
                 expect(or([has('user.WRITE'), has('user.UPDATE')])(context)).toBe(false);
             });
 
             it('should return true if at least one permission exists', () => {
-                const context = { user: Option.some([EUserPermissions.READ]) };
+                const context = { user: resolved([EUserPermissions.READ]) };
                 expect(or([has('user.READ'), has('user.WRITE')])(context)).toBe(true);
             });
 
             it('should return false for empty expressions array', () => {
-                const context = { user: Option.some([EUserPermissions.READ]) };
+                const context = { user: resolved([EUserPermissions.READ]) };
                 expect(or([])(context)).toBe(false);
             });
 
             it('should work with mixed scopes', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ]),
-                    team: Option.some([ETeamPermissions.WRITE]),
+                    user: resolved([EUserPermissions.READ]),
+                    team: resolved([ETeamPermissions.WRITE]),
                 };
                 expect(or([has('user.READ'), has('team.READ')])(context)).toBe(true);
                 expect(or([has('user.WRITE'), has('team.READ')])(context)).toBe(false);
@@ -154,8 +154,8 @@ describe('RBAC Operators V2', () => {
 
             it('should handle complex nested expressions', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ, EUserPermissions.WRITE]),
-                    team: Option.some([ETeamPermissions.UPDATE]),
+                    user: resolved([EUserPermissions.READ, EUserPermissions.WRITE]),
+                    team: resolved([ETeamPermissions.UPDATE]),
                 };
                 const expression = or([has('user.READ'), and([has('user.WRITE'), has('team.UPDATE')])]);
                 expect(expression(context)).toBe(true);
@@ -164,24 +164,24 @@ describe('RBAC Operators V2', () => {
 
         describe('and operator', () => {
             it('should return true if all permissions exist', () => {
-                const context = { user: Option.some([EUserPermissions.READ, EUserPermissions.WRITE]) };
+                const context = { user: resolved([EUserPermissions.READ, EUserPermissions.WRITE]) };
                 expect(and([has('user.READ'), has('user.WRITE')])(context)).toBe(true);
             });
 
             it('should return false if any permission does not exist', () => {
-                const context = { user: Option.some([EUserPermissions.READ]) };
+                const context = { user: resolved([EUserPermissions.READ]) };
                 expect(and([has('user.READ'), has('user.WRITE')])(context)).toBe(false);
             });
 
             it('should return true for empty expressions array', () => {
-                const context = { user: Option.some([EUserPermissions.READ]) };
+                const context = { user: resolved([EUserPermissions.READ]) };
                 expect(and([])(context)).toBe(true);
             });
 
             it('should work with mixed scopes', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ]),
-                    team: Option.some([ETeamPermissions.WRITE]),
+                    user: resolved([EUserPermissions.READ]),
+                    team: resolved([ETeamPermissions.WRITE]),
                 };
                 expect(and([has('user.READ'), has('team.WRITE')])(context)).toBe(true);
                 expect(and([has('user.READ'), has('team.READ')])(context)).toBe(false);
@@ -189,8 +189,8 @@ describe('RBAC Operators V2', () => {
 
             it('should handle complex nested expressions', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ, EUserPermissions.WRITE]),
-                    team: Option.some([ETeamPermissions.UPDATE]),
+                    user: resolved([EUserPermissions.READ, EUserPermissions.WRITE]),
+                    team: resolved([ETeamPermissions.UPDATE]),
                 };
                 const expression = and([has('user.READ'), or([has('user.WRITE'), has('team.UPDATE')])]);
                 expect(expression(context)).toBe(true);
@@ -199,7 +199,7 @@ describe('RBAC Operators V2', () => {
 
         describe('edge cases and error handling', () => {
             it('should handle undefined context properties gracefully', () => {
-                const context = { user: Option.none };
+                const context = { user: unresolved };
                 expect(() => has('user.READ')(context)).not.toThrow();
                 expect(() => not('user.READ')(context)).not.toThrow();
                 expect(() => and([has('user.READ')])(context)).not.toThrow();
@@ -216,7 +216,7 @@ describe('RBAC Operators V2', () => {
 
             it('should handle duplicate permissions in context', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ, EUserPermissions.READ, EUserPermissions.WRITE]),
+                    user: resolved([EUserPermissions.READ, EUserPermissions.READ, EUserPermissions.WRITE]),
                 };
                 expect(has('user.READ')(context)).toBe(true);
                 expect(has('user.WRITE')(context)).toBe(true);
@@ -228,9 +228,9 @@ describe('RBAC Operators V2', () => {
         describe('comprehensive operator combinations', () => {
             it('should handle complex logical combinations', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ, EUserPermissions.WRITE]),
-                    team: Option.some([ETeamPermissions.UPDATE]),
-                    support: Option.some([ESupportPermissions.CREATE]),
+                    user: resolved([EUserPermissions.READ, EUserPermissions.WRITE]),
+                    team: resolved([ETeamPermissions.UPDATE]),
+                    support: resolved([ESupportPermissions.CREATE]),
                 };
 
                 // Test complex expression: (user.READ AND team.UPDATE) OR (user.WRITE AND support.CREATE)
@@ -244,9 +244,9 @@ describe('RBAC Operators V2', () => {
 
             it("should handle De Morgan's law", () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ]),
-                    team: Option.some([ETeamPermissions.WRITE]),
-                    support: Option.none,
+                    user: resolved([EUserPermissions.READ]),
+                    team: resolved([ETeamPermissions.WRITE]),
+                    support: unresolved,
                 };
 
                 // Test: NOT(A AND B) = NOT(A) OR NOT(B)
@@ -266,9 +266,9 @@ describe('RBAC Operators V2', () => {
 
             it('should handle distributive law', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ, EUserPermissions.WRITE]),
-                    team: Option.some([ETeamPermissions.UPDATE]),
-                    support: Option.none,
+                    user: resolved([EUserPermissions.READ, EUserPermissions.WRITE]),
+                    team: resolved([ETeamPermissions.UPDATE]),
+                    support: unresolved,
                 };
 
                 // Test: A AND (B OR C) = (A AND B) OR (A AND C)
@@ -284,14 +284,14 @@ describe('RBAC Operators V2', () => {
 
         describe('boundary conditions', () => {
             it('should handle single permission in context', () => {
-                const context = { user: Option.some([EUserPermissions.READ]) };
+                const context = { user: resolved([EUserPermissions.READ]) };
                 expect(has('user.READ')(context)).toBe(true);
                 expect(not('user.READ')(context)).toBe(false);
             });
 
             it('should handle all permissions in context', () => {
                 const context = {
-                    user: Option.some([
+                    user: resolved([
                         EUserPermissions.READ,
                         EUserPermissions.WRITE,
                         EUserPermissions.UPDATE,
@@ -309,9 +309,9 @@ describe('RBAC Operators V2', () => {
 
             it('should handle maximum nesting depth', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ]),
-                    team: Option.some([ETeamPermissions.WRITE]),
-                    support: Option.none,
+                    user: resolved([EUserPermissions.READ]),
+                    team: resolved([ETeamPermissions.WRITE]),
+                    support: unresolved,
                 };
 
                 // Test very deep nesting (1500 levels)
@@ -328,7 +328,7 @@ describe('RBAC Operators V2', () => {
 
         describe('typelevel tests', () => {
             it('and should throw typescript error if provided context is insufficient', () => {
-                const context = { user: Option.none };
+                const context = { user: unresolved };
                 const expression = and([has('user.READ'), has('team.READ')]);
 
                 // @ts-expect-error - context is insufficient
@@ -338,7 +338,7 @@ describe('RBAC Operators V2', () => {
             });
 
             it('universalOperators.or should throw typescript error if provided context is insufficient', () => {
-                const context = { user: Option.none };
+                const context = { user: unresolved };
                 const expression = or([has('user.READ'), has('team.READ')]);
 
                 // @ts-expect-error - context is insufficient
@@ -349,9 +349,9 @@ describe('RBAC Operators V2', () => {
 
             it('should handle complex type intersections correctly', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ]),
-                    team: Option.some([ETeamPermissions.WRITE]),
-                    support: Option.some([ESupportPermissions.UPDATE]),
+                    user: resolved([EUserPermissions.READ]),
+                    team: resolved([ETeamPermissions.WRITE]),
+                    support: resolved([ESupportPermissions.UPDATE]),
                 };
 
                 const complexExpression = and([
@@ -378,9 +378,9 @@ describe('RBAC Operators V2', () => {
 
             it('should handle deeply nested expressions', () => {
                 const context = {
-                    user: Option.some([EUserPermissions.READ, EUserPermissions.WRITE]),
-                    team: Option.some([ETeamPermissions.UPDATE]),
-                    support: Option.some([ESupportPermissions.CREATE, ESupportPermissions.WRITE]),
+                    user: resolved([EUserPermissions.READ, EUserPermissions.WRITE]),
+                    team: resolved([ETeamPermissions.UPDATE]),
+                    support: resolved([ESupportPermissions.CREATE, ESupportPermissions.WRITE]),
                 };
 
                 // Test very deep nesting (1500 levels)

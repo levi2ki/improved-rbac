@@ -1,4 +1,4 @@
-import * as Option from 'fp-ts/Option';
+import { resolved } from '../../grant-state';
 import { EUserPermissions, ETeamPermissions, ESupportPermissions } from './permissions.mock';
 
 // Large permission arrays for performance testing
@@ -15,9 +15,9 @@ export const largeSupportPermissions: ESupportPermissions[] = Object.values(ESup
 );
 
 export const createLargeTestContext = () => ({
-    user: Option.some(largeUserPermissions),
-    team: Option.some(largeTeamPermissions),
-    support: Option.some(largeSupportPermissions),
+    user: resolved(largeUserPermissions),
+    team: resolved(largeTeamPermissions),
+    support: resolved(largeSupportPermissions),
 });
 
 // Performance testing utilities

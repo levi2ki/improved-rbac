@@ -8,7 +8,7 @@ const swcJestConfig = JSON.parse(readFileSync(`${__dirname}/.spec.swcrc`, 'utf-8
 swcJestConfig.swcrc = false;
 
 export default {
-    displayName: '@levi2ki/rbac-core',
+    displayName: '@levi2ki/rbac-expression',
     preset: '../../jest.preset.js',
     testEnvironment: 'node',
     transform: {

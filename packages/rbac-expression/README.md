@@ -1,267 +1,140 @@
 # @levi2ki/rbac-expression
 
-A powerful Domain Specific Language (DSL) library for building complex Role-Based Access Control (RBAC) expressions with type safety and functional programming principles.
+Typed policy expressions over a grant registry.
 
-## Overview
-
-`rbac-expression` provides a fluent, composable API for creating complex permission expressions that can be evaluated against user contexts. Built on top of `@levi2ki/rbac-core` and `fp-ts`, it offers:
-
--   **Type-safe expressions** with full TypeScript support
--   **Functional composition** using `Reader` monads
--   **Composable operators** for building complex permission logic
--   **Performance optimized** for large permission sets and deep nesting
--   **Zero runtime dependencies** beyond the core libraries
+This package is a framework-agnostic policy enforcement layer. It evaluates reusable business rules against runtime grant state, but it does not fetch grants, manage users, manage roles, or replace backend authorization.
 
 ## Installation
 
-```bash
-pnpm add @levi2ki/rbac-expression
+```sh
+pnpm add @levi2ki/rbac-expression @levi2ki/rbac-core
 ```
 
-## Quick Start
+## Usage
 
-```typescript
-import { createExpression } from '@levi2ki/rbac-expression';
+```ts
 import { createModule, getDefaultRegistry, register } from '@levi2ki/rbac-core';
-import { pipe } from 'fp-ts/function';
-import * as Option from 'fp-ts/Option';
+import { createExpression, resolved, unresolved } from '@levi2ki/rbac-expression';
 
-// Define your permission enums
-enum UserPermissions {
-    READ = 'READ',
-    WRITE = 'WRITE',
-    DELETE = 'DELETE',
+enum SystemGrant {
+  READ_PROJECTS = 'READ_PROJECTS',
+  FULL_EDIT_ACCESS = 'FULL_EDIT_ACCESS',
 }
 
-enum TeamPermissions {
-    MANAGE = 'MANAGE',
-    VIEW = 'VIEW',
+enum ProjectGrant {
+  FULL_EDIT_ACCESS = 'FULL_EDIT_ACCESS',
 }
 
-// Create and configure the registry
-const registry = pipe(getDefaultRegistry(), register(createModule<UserPermissions>()('user')), register(createModule<TeamPermissions>()('team')));
+enum TaskGrant {
+  EDIT = 'EDIT',
+  ISSUE_CREATE = 'ISSUE_CREATE',
+}
 
-// Create expression functions
+const registry = register(createModule<TaskGrant>()('task'))(
+  register(createModule<ProjectGrant>()('project'))(
+    register(createModule<SystemGrant>()('system'))(getDefaultRegistry())
+  )
+);
+
 const { has, not, and, or } = createExpression(registry);
 
-// Define user context
-const userContext = {
-    user: Option.some([UserPermissions.READ, UserPermissions.WRITE]),
-    team: Option.some([TeamPermissions.VIEW]),
+export const canSeeProjects = has('system.READ_PROJECTS');
+
+export const canEditTaskAttributes = or([
+  has('system.FULL_EDIT_ACCESS'),
+  has('project.FULL_EDIT_ACCESS'),
+  and([
+    has('task.EDIT'),
+    not('task.ISSUE_CREATE'),
+  ]),
+]);
+
+const grants = {
+  system: resolved([SystemGrant.READ_PROJECTS]),
+  project: unresolved,
+  task: resolved([TaskGrant.EDIT]),
 };
 
-// Create and evaluate expressions
-const canEdit = has('user.WRITE');
-const cannotDelete = not('user.DELETE');
-const canManageTeam = has('team.MANAGE');
-
-const complexExpression = and([canEdit, cannotDelete, or([canManageTeam, has('user.READ')])]);
-
-// Evaluate the expression
-const result = complexExpression(userContext);
-console.log(result); // true
+canSeeProjects(grants); // true
+canEditTaskAttributes(grants); // true
 ```
 
-## Core Concepts
+## Boolean Equivalent
 
-### Expressions as Functions
+The expression DSL intentionally mirrors basic boolean operators:
 
-All expressions in `rbac-expression` are functions that take a context and return a boolean. This makes them:
+- `has('scope.GRANT')` is a typed grant membership check
+- `not(...)` is logical `!`
+- `and([...])` is logical `&&`
+- `or([...])` is logical `||`
 
--   **Composable**: Combine expressions using `and`, `or`, and `not`
--   **Reusable**: Define expressions once and use them multiple times
--   **Testable**: Easy to unit test individual expressions
--   **Lazy**: Expressions are only evaluated when called
+Conceptually, the previous `canEditTaskAttributes` expression is equivalent to this boolean rule:
 
-### Context Structure
-
-The context is a record where each key corresponds to a scope (module) and the value is an `Option<Permission[]>`:
-
-```typescript
-type Context = {
-    [scope: string]: Option<Permission[]>;
-};
+```ts
+const canEditTaskAttributes =
+  system.has('FULL_EDIT_ACCESS') ||
+  project.has('FULL_EDIT_ACCESS') ||
+  (task.has('EDIT') && !task.has('ISSUE_CREATE'));
 ```
 
-### Type Safety
+The real DSL version represents that rule as a reusable evaluator:
 
-The library provides full type safety through TypeScript:
-
--   Permission strings are validated at compile time
--   Scope names are inferred from the registry
--   Context types are automatically inferred
--   Type errors for invalid permission combinations
-
-## API Reference
-
-### `createExpression(registry)`
-
-Creates expression functions bound to a specific registry.
-
-**Parameters:**
-
--   `registry`: A registry instance from `@levi2ki/rbac-core`
-
-**Returns:**
-
--   `{ has, not, and, or }`: Object containing all expression operators
-
-### `has(permission)`
-
-Checks if a specific permission exists in the context.
-
-**Parameters:**
-
--   `permission`: String in format `"scope.permission"` (e.g., `"user.READ"`)
-
-**Returns:**
-
--   `Reader<Context, boolean>`: Function that evaluates to `true` if permission exists
-
-**Example:**
-
-```typescript
-const canRead = has('user.READ');
-const result = canRead(userContext); // true if user has READ permission
+```ts
+const canEditTaskAttributes = or([
+  has('system.FULL_EDIT_ACCESS'),
+  has('project.FULL_EDIT_ACCESS'),
+  and([
+    has('task.EDIT'),
+    not('task.ISSUE_CREATE'),
+  ]),
+]);
 ```
 
-### `not(permission)`
+With the example grant context, the result is `true` because the last branch is true:
 
-Checks if a specific permission does NOT exist in the context.
-
-**Parameters:**
-
--   `permission`: String in format `"scope.permission"`
-
-**Returns:**
-
--   `Reader<Context, boolean>`: Function that evaluates to `true` if permission doesn't exist
-
-**Example:**
-
-```typescript
-const cannotDelete = not('user.DELETE');
-const result = cannotDelete(userContext); // true if user lacks DELETE permission
+```ts
+task.EDIT && !task.ISSUE_CREATE
 ```
 
-### `and(expressions)`
+An unresolved scope only affects the branch that reads it. In the example, `project: unresolved` makes `has('project.FULL_EDIT_ACCESS')` evaluate to `false`, but it does not make the whole `or(...)` fail.
 
-Logical AND of multiple expressions. All expressions must evaluate to `true`.
+## Grant State
 
-**Parameters:**
+Runtime grants are represented with the package-owned `GrantState` type:
 
--   `expressions`: Array of expression functions
+- `resolved([...])`
+  Grants for the scope are known, including the valid empty state `resolved([])`.
+- `unresolved`
+  Grants for the scope are not available yet.
 
-**Returns:**
+Expression evaluation is conservative for unresolved state:
 
--   `Reader<Context, boolean>`: Function that evaluates to `true` only if ALL expressions are `true`
+- `has(...)` returns `false`
+- `not(...)` returns `false`
 
-**Example:**
+This keeps loading or missing grant data distinct from a known empty grant set.
 
-```typescript
-const canEditAndView = and([has('user.WRITE'), has('user.READ')]);
-```
+## API
 
-### `or(expressions)`
+- `createExpression(registry)`
+  Creates typed expression constructors. The registry is primarily used for type inference.
+- `PolicyContext<Registry, 'scope.GRANT'>`
+  Type helper for the grant context required by a single grant expression.
+- `PolicyEvaluator<Context>`
+  Function type for reusable policy evaluators.
+- `has('scope.GRANT')`
+  Checks that a resolved scope contains the grant.
+- `not('scope.GRANT')`
+  Checks that a resolved scope does not contain the grant.
+- `and([...])`
+  Evaluates all child expressions. Empty `and([])` returns `true`.
+- `or([...])`
+  Evaluates any child expression. Empty `or([])` returns `false`.
+- `resolved(grants)`
+  Creates a resolved grant state.
+- `unresolved`
+  Represents grants that have not been loaded or are not available.
 
-Logical OR of multiple expressions. At least one expression must evaluate to `true`.
+## Boundary
 
-**Parameters:**
-
--   `expressions`: Array of expression functions
-
-**Returns:**
-
--   `Reader<Context, boolean>`: Function that evaluates to `true` if ANY expression is `true`
-
-**Example:**
-
-```typescript
-const canManageOrView = or([has('team.MANAGE'), has('team.VIEW')]);
-```
-
-## Advanced Usage
-
-### Complex Permission Logic
-
-```typescript
-// User can edit if they have WRITE permission AND either are an admin OR have team management rights
-const canEdit = and([has('user.WRITE'), or([has('user.ADMIN'), has('team.MANAGE')])]);
-
-// User can delete if they have DELETE permission AND cannot be deleted themselves
-const canDelete = and([has('user.DELETE'), not('user.CAN_BE_DELETED')]);
-```
-
-### Conditional Permissions
-
-```typescript
-// Different permissions based on user role
-const userPermissions = user.isAdmin ? [has('user.ADMIN'), has('user.SUPER_USER')] : [has('user.READ'), has('user.WRITE')];
-
-const effectivePermissions = and(userPermissions);
-```
-
-### Performance Considerations
-
-The library is optimized for performance:
-
--   **Lazy evaluation**: Expressions are only computed when needed
--   **Short-circuit evaluation**: `and` and `or` operators stop early when possible
--   **Efficient permission lookup**: Uses optimized permission checking algorithms
--   **Memory efficient**: Minimal object creation during evaluation
-
-## Testing
-
-The library includes comprehensive test utilities and supports various testing scenarios:
-
-```typescript
-import { createTestContext, measurePerformance } from './__mocks__/test-data.mock';
-
-// Performance testing
-const { time, result } = measurePerformance(() => complexExpression(largeContext));
-expect(time).toBeLessThan(100); // Ensure performance threshold
-
-// Edge case testing
-const emptyContext = { user: Option.none };
-expect(has('user.READ')(emptyContext)).toBe(false);
-```
-
-## Building
-
-```bash
-nx build rbac-expression
-```
-
-## Running Tests
-
-```bash
-nx test rbac-expression
-```
-
-## Contributing
-
-This package is part of the `improved-rbac` monorepo. See the root README for contribution guidelines.
-
-## License
-
-MIT License
-
-Copyright (c) 2024 @levi2ki
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Keep this package focused on expression construction and evaluation. React hooks, NestJS guards, decorators, request context wiring, and grant fetching should be implemented as adapters on top of this package.
