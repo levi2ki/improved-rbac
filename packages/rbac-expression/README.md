@@ -61,12 +61,12 @@ canEditTaskAttributes(grants); // true
 
 ## Boolean Equivalent
 
-The expression DSL intentionally mirrors basic boolean operators:
+The expression DSL intentionally mirrors a small subset of boolean logic:
 
 - `has('scope.GRANT')` is a typed grant membership check
-- `not(...)` is logical `!`
 - `and([...])` is logical `&&`
 - `or([...])` is logical `||`
+- `not('scope.GRANT')` is a typed grant absence check
 
 Conceptually, the previous `canEditTaskAttributes` expression is equivalent to this boolean rule:
 
@@ -75,6 +75,23 @@ const canEditTaskAttributes =
   system.has('FULL_EDIT_ACCESS') ||
   project.has('FULL_EDIT_ACCESS') ||
   (task.has('EDIT') && !task.has('ISSUE_CREATE'));
+```
+
+`not` is intentionally narrower than JavaScript's unary `!`. It only negates a single grant check, not an arbitrary expression tree. To express negation of composed logic, rewrite the rule using De Morgan's laws before translating it to the DSL.
+
+For example, this boolean rule:
+
+```ts
+!(task.has('EDIT') && task.has('ISSUE_CREATE'));
+```
+
+should be written as:
+
+```ts
+or([
+  not('task.EDIT'),
+  not('task.ISSUE_CREATE'),
+]);
 ```
 
 The real DSL version represents that rule as a reusable evaluator:
