@@ -237,9 +237,11 @@ for frequently changing, large grant contexts.
 Measure the actual tree with the React Profiler before optimizing. Record
 commits and render durations while changing representative account, workspace,
 and document grants. If the measurements show a problem, keep root `grants`
-references stable when values have not changed, move independent subtrees behind
-boundaries, or split a tree at an application-owned composition point. Do not
-assume that more providers are faster without profiler evidence.
+references stable when values have not changed, and keep unrelated,
+frequently-changing application state outside the policy provider. A policy
+boundary scopes grant visibility; because it consumes its parent context, it is
+not a rerender-isolation mechanism for parent-context changes. Do not assume
+that more providers are faster without profiler evidence.
 
 ## Structural migration
 
