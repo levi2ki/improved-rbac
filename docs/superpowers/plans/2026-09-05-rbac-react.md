@@ -807,7 +807,7 @@ git commit -m "feat(rbac-react): add policy boundary HOC"
 - Consumes: all runtime factories and public types from Tasks 1-4.
 - Produces: the final `createReactPolicy(registry)` API and published ESM entry point.
 
-- [ ] **Step 1: Write a failing public-entry type test**
+- [x] **Step 1: Write a failing public-entry type test**
 
 Change `types.type-test.tsx` to import only from `@levi2ki/rbac-react`, then exercise:
 
@@ -824,7 +824,7 @@ const {
 
 Keep every positive and negative assertion from earlier tasks. This must be a consumer view: do not import private files.
 
-- [ ] **Step 2: Run typecheck and verify RED**
+- [x] **Step 2: Run typecheck and verify RED**
 
 ```bash
 pnpm exec tsc -b packages/rbac-react/tsconfig.json
@@ -832,7 +832,7 @@ pnpm exec tsc -b packages/rbac-react/tsconfig.json
 
 Expected: FAIL until the public entry point exports the complete factory and public types.
 
-- [ ] **Step 3: Compose and export the final factory**
+- [x] **Step 3: Compose and export the final factory**
 
 `createReactPolicy(registry)` creates the context primitives once, passes their private consumer into the boundary factory, constructs `PolicyGate` from the exact `usePolicy`, and constructs `withPolicy` from the exact `createPolicyBoundary`. Return exactly:
 
@@ -849,7 +849,7 @@ Expected: FAIL until the public entry point exports the complete factory and pub
 
 Export `createReactPolicy` plus consumer-useful types from `src/index.ts`. Do not export the raw React context, normalization helpers, resolution helpers, or test fixtures.
 
-- [ ] **Step 4: Add the ESM-only Rollup configuration**
+- [x] **Step 4: Add the ESM-only Rollup configuration**
 
 Emit only `dist/index.esm.js` and declarations rooted at `dist/index.d.ts`. Clean `dist` at build start. Configure these exact externals:
 
@@ -886,7 +886,7 @@ module.exports = {
 
 Do not emit a CommonJS file. Ensure `package.json` has no `main` field pointing to a nonexistent or ambiguous CJS artifact.
 
-- [ ] **Step 5: Run typecheck, tests, and build to verify GREEN**
+- [x] **Step 5: Run typecheck, tests, and build to verify GREEN**
 
 ```bash
 pnpm exec tsc -b
@@ -899,7 +899,7 @@ test ! -f packages/rbac-react/dist/index.js
 
 Expected: every command exits zero and the file assertions confirm the ESM-only artifact set.
 
-- [ ] **Step 6: Verify the built public package as a consumer**
+- [x] **Step 6: Verify the built public package as a consumer**
 
 Run a Node ESM import after the build:
 
@@ -909,7 +909,7 @@ node --input-type=module -e "import('@levi2ki/rbac-react').then((m) => { if (typ
 
 Expected: exit zero. Inspect `dist/index.esm.js` and confirm workspace package and React code were not inlined; imports must remain external.
 
-- [ ] **Step 7: Commit the package output contract**
+- [x] **Step 7: Commit the package output contract**
 
 ```bash
 git add packages/rbac-react
