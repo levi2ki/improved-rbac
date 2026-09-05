@@ -50,3 +50,4 @@ test-output
 
 .rollup.cache
 .pnpm
+.codex
