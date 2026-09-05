@@ -6,3 +6,5 @@ export type {
   PolicyBoundaryGrants,
   RegistryGrantContext,
 } from './lib/types';
+
+export type { PolicyGateProps } from './lib/policy-gate';

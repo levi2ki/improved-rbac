@@ -3,6 +3,7 @@ import * as React from 'react';
 import type { PolicyEvaluator } from '@levi2ki/rbac-expression';
 import { unresolved } from '@levi2ki/rbac-expression';
 
+import { createPolicyGateFactory } from './policy-gate';
 import type { GenericRegistry, RegistryGrantContext } from './types';
 
 function createRootContext<Reg extends GenericRegistry>(
@@ -47,5 +48,7 @@ export function createReactPolicyContext<Reg extends GenericRegistry>(registry: 
     return <Context.Provider value={value}>{children}</Context.Provider>;
   }
 
-  return { Context, PolicyProvider, useGrantContext, usePolicy };
+  const PolicyGate = createPolicyGateFactory<FullContext>(usePolicy);
+
+  return { Context, PolicyProvider, PolicyGate, useGrantContext, usePolicy };
 }
