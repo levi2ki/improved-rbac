@@ -8,6 +8,9 @@
         },
         {
             "path": "./packages/rbac-expression"
+        },
+        {
+            "path": "./packages/rbac-react"
         }
     ]
 }

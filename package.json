@@ -46,7 +46,8 @@
     },
     "workspaces": [
         "packages/rbac-core",
-        "packages/rbac-expression"
+        "packages/rbac-expression",
+        "packages/rbac-react"
     ],
     "dependencies": {
         "@swc/wasm": "^1.13.3",

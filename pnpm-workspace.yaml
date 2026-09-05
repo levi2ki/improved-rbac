@@ -1,6 +1,7 @@
 packages:
   - packages/rbac-core
   - packages/rbac-expression
+  - packages/rbac-react
 
 onlyBuiltDependencies:
   - '@swc/core'
