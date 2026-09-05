@@ -113,7 +113,7 @@ Root files modified across the plan:
 - Consumes: `Registry`, `ModulePermissions`, `GrantState`, `PolicyEvaluator`, and `unresolved`.
 - Produces: `RegistryGrantContext<Reg>`, `CompatiblePolicy<Full, Context>`, `createReactPolicyContext(registry)`, `PolicyProvider`, `useGrantContext`, and `usePolicy`.
 
-- [ ] **Step 1: Create the package configuration without production implementation**
+- [x] **Step 1: Create the package configuration without production implementation**
 
 Use the neighboring package configs as the baseline, with these binding differences:
 
@@ -307,7 +307,7 @@ Use this build `.swcrc`:
 
 Use the existing package ESLint configuration verbatim and `.eslintignore` containing exactly `node_modules` and `dist`, one entry per line.
 
-- [ ] **Step 2: Write the failing root-context tests**
+- [x] **Step 2: Write the failing root-context tests**
 
 Create a neutral registry with `account` and `document` scopes. Test through rendered probes:
 
@@ -332,7 +332,7 @@ Cover these behaviors separately:
 - `usePolicy` and `useGrantContext` throw a message containing `PolicyProvider` when rendered without the provider;
 - resolved empty grants remain distinguishable from `unresolved` through `useGrantContext`.
 
-- [ ] **Step 3: Run the tests and verify RED**
+- [x] **Step 3: Run the tests and verify RED**
 
 Run:
 
@@ -342,7 +342,7 @@ pnpm exec nx test @levi2ki/rbac-react --runInBand
 
 Expected: FAIL because `createReactPolicyContext`, its provider, and hooks do not exist.
 
-- [ ] **Step 4: Implement the minimal types and root context**
+- [x] **Step 4: Implement the minimal types and root context**
 
 Define the central mapped type:
 
@@ -425,7 +425,7 @@ export function createReactPolicyContext<Reg extends GenericRegistry>(registry: 
 
 Keep `createReactPolicyContext` internal and import it directly from the relative module in package tests. `src/index.ts` must not expose a temporary public factory; Task 5 creates the final public `createReactPolicy` composition.
 
-- [ ] **Step 5: Run the focused tests and verify GREEN**
+- [x] **Step 5: Run the focused tests and verify GREEN**
 
 Run:
 
@@ -436,11 +436,11 @@ pnpm exec tsc -b packages/rbac-react/tsconfig.json
 
 Expected: PASS with no warnings or TypeScript errors.
 
-- [ ] **Step 6: Refactor while green**
+- [x] **Step 6: Refactor while green**
 
 Extract root-context construction into a small pure function if the provider body cannot be understood independently. Do not introduce boundary strategies yet. Re-run both commands from Step 5.
 
-- [ ] **Step 7: Commit the independently working root context**
+- [x] **Step 7: Commit the independently working root context**
 
 ```bash
 git add package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.json nx.json packages/rbac-react
@@ -465,7 +465,7 @@ git commit -m "feat(rbac-react): add root policy context"
 - Consumes: the private context consumer and `RegistryGrantContext<Reg>` from Task 1.
 - Produces: `BoundaryStrategy`, `BoundaryDefaultStrategy`, `PolicyBoundaryConfig<Reg>`, `PolicyBoundaryGrants<Reg, Config>`, and `createPolicyBoundary(config)`.
 
-- [ ] **Step 1: Write runtime boundary tests**
+- [x] **Step 1: Write runtime boundary tests**
 
 Cover one behavior per test:
 
@@ -479,7 +479,7 @@ Cover one behavior per test:
 - a boundary outside `PolicyProvider` throws;
 - an unknown runtime scope, invalid strategy, or missing provided grant throws a diagnostic error.
 
-- [ ] **Step 2: Write compile-time boundary tests**
+- [x] **Step 2: Write compile-time boundary tests**
 
 Use literal configs with `as const` and `@ts-expect-error` assertions. Include:
 
@@ -500,7 +500,7 @@ const DocumentBoundary = createPolicyBoundary({
 
 Also assert rejection of an unknown scope and rejection of `default: 'provide'`.
 
-- [ ] **Step 3: Run tests and typecheck to verify RED**
+- [x] **Step 3: Run tests and typecheck to verify RED**
 
 ```bash
 pnpm exec nx test @levi2ki/rbac-react --runInBand
@@ -509,7 +509,7 @@ pnpm exec tsc -b packages/rbac-react/tsconfig.json
 
 Expected: FAIL because boundary types and runtime implementation are absent; typecheck must also report unused or unsatisfied expectation sites until the constraints exist.
 
-- [ ] **Step 4: Implement boundary strategy inference**
+- [x] **Step 4: Implement boundary strategy inference**
 
 Use a required default limited to `inherit | reset`:
 
@@ -558,7 +558,7 @@ export type PolicyBoundaryGrants<
 };
 ```
 
-- [ ] **Step 5: Implement normalized boundary resolution**
+- [x] **Step 5: Implement normalized boundary resolution**
 
 At `createPolicyBoundary(config)` time:
 
@@ -590,7 +590,7 @@ for (const scope of scopeNames) {
 }
 ```
 
-- [ ] **Step 6: Run focused tests and typecheck to verify GREEN**
+- [x] **Step 6: Run focused tests and typecheck to verify GREEN**
 
 ```bash
 pnpm exec nx test @levi2ki/rbac-react --runInBand
@@ -599,11 +599,11 @@ pnpm exec tsc -b packages/rbac-react/tsconfig.json
 
 Expected: PASS. Remove no `@ts-expect-error`; each one must be consumed by the intended type failure.
 
-- [ ] **Step 7: Refactor while green**
+- [x] **Step 7: Refactor while green**
 
 Keep configuration normalization and per-render resolution as separate pure functions. Re-run the Task 2 test file and TypeScript build after refactoring.
 
-- [ ] **Step 8: Commit the boundary capability**
+- [x] **Step 8: Commit the boundary capability**
 
 ```bash
 git add packages/rbac-react/src
