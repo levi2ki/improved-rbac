@@ -930,7 +930,7 @@ git commit -m "build(rbac-react): publish ESM package"
 - Consumes: the completed public API from Task 5.
 - Produces: repository and package documentation that teaches the supported architecture without exposing reference-project vocabulary.
 
-- [ ] **Step 1: Write the package README**
+- [x] **Step 1: Write the package README**
 
 Use only neutral examples such as `account`, `workspace`, and `document`, with grants such as `ADMIN`, `READ`, and `EDIT`. Include runnable snippets for:
 
@@ -956,11 +956,11 @@ permission arrays used for loading -> explicit GrantState values
 
 Do not include the private reference project's name, links, repository or filesystem paths, routes, grants, entity terminology, source structure, or component identifiers.
 
-- [ ] **Step 2: Update the root README package list and example flow**
+- [x] **Step 2: Update the root README package list and example flow**
 
 Add `@levi2ki/rbac-react` after the expression package. Keep the root product boundary explicit: adapters sit above expressions and backend authorization remains authoritative.
 
-- [ ] **Step 3: Verify documentation examples**
+- [x] **Step 3: Verify documentation examples**
 
 Move any nontrivial README snippets into or mirror them in compile-time tests so they are checked by:
 
@@ -976,7 +976,7 @@ rg -n "/Users/|file://|https?://" packages/rbac-react/README.md README.md
 
 Expected: the TypeScript command passes and the scan returns no paths or links. Compare every migration identifier and example against the private reference source during review; no source-specific name or recognizable domain term may remain.
 
-- [ ] **Step 4: Commit documentation**
+- [x] **Step 4: Commit documentation**
 
 ```bash
 git add packages/rbac-react/README.md README.md packages/rbac-react/src/lib/types.type-test.tsx
