@@ -2,12 +2,13 @@ import { render, screen } from '@testing-library/react';
 
 import { createExpression, resolved } from '@levi2ki/rbac-expression';
 
-import { createReactPolicyContext } from './react-policy-context';
+// eslint-disable-next-line @nx/enforce-module-boundaries -- Verify the public package contract as a consumer.
+import { createReactPolicy } from '@levi2ki/rbac-react';
 import { testRegistry } from './test-registry';
 
 const { has } = createExpression(testRegistry);
 const canReadDocument = has('document.read');
-const policyContext = createReactPolicyContext(testRegistry);
+const policyContext = createReactPolicy(testRegistry);
 const { PolicyGate, PolicyProvider } = policyContext;
 
 describe('PolicyGate', () => {

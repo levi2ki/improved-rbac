@@ -1,14 +1,48 @@
 import * as React from 'react';
 
-import { resolved, unresolved } from '@levi2ki/rbac-expression';
+import { createModule, getDefaultRegistry, register } from '@levi2ki/rbac-core';
+import { createExpression, resolved, unresolved } from '@levi2ki/rbac-expression';
+// eslint-disable-next-line @nx/enforce-module-boundaries -- Verify the public package contract as a consumer.
+import { createReactPolicy, type RegistryGrantContext } from '@levi2ki/rbac-react';
 
-import { createPolicyBoundaryFactory } from './policy-boundary';
-import { createReactPolicyContext } from './react-policy-context';
-import { testRegistry } from './test-registry';
+const testRegistry = register(createModule<'read' | 'write'>()('document'))(
+  register(createModule<'read'>()('account'))(getDefaultRegistry()),
+);
+const {
+  PolicyProvider,
+  PolicyGate,
+  usePolicy,
+  useGrantContext,
+  createPolicyBoundary,
+  withPolicy,
+} = createReactPolicy(testRegistry);
+const { has, and } = createExpression(testRegistry);
+const canReadDocument = has('document.read');
+const canReadBoth = and([has('account.read'), canReadDocument]);
+const foreignRegistry = register(createModule<'read'>()('foreign'))(getDefaultRegistry());
+const foreignPolicy = createExpression(foreignRegistry).has('foreign.read');
 
-const { Context, useGrantContext } = createReactPolicyContext(testRegistry);
-const createPolicyBoundary = createPolicyBoundaryFactory(testRegistry, Context, useGrantContext);
-const { withPolicy } = createReactPolicyContext(testRegistry);
+function Consumer() {
+  const context: RegistryGrantContext<typeof testRegistry> = useGrantContext();
+  const documentAllowed: boolean = usePolicy(canReadDocument);
+  const bothAllowed: boolean = usePolicy(canReadBoth);
+  // @ts-expect-error policies requiring an unknown scope are incompatible
+  usePolicy(foreignPolicy);
+  return <output>{String(documentAllowed && bothAllowed)}{context.document.kind}</output>;
+}
+
+<PolicyProvider grants={{ document: resolved(['read']) }}><Consumer /></PolicyProvider>;
+<PolicyGate policy={canReadDocument} />;
+<PolicyGate policy={canReadBoth} fallback="Denied">Allowed</PolicyGate>;
+
+// @ts-expect-error root grants are restricted to registry scopes
+<PolicyProvider grants={{ foreign: unresolved }} />;
+
+// @ts-expect-error grants are restricted to the declared vocabulary
+<PolicyProvider grants={{ document: resolved(['delete']) }} />;
+
+// @ts-expect-error gates reject policies requiring an unknown scope
+<PolicyGate policy={foreignPolicy} />;
 
 const DocumentBoundary = createPolicyBoundary({
   default: 'reset',

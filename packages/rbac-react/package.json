@@ -1,6 +1,7 @@
 {
   "name": "@levi2ki/rbac-react",
   "version": "0.1.0",
+  "description": "Typed React providers, hooks, and boundaries for grant-based policy expressions.",
   "license": "MIT",
   "type": "module",
   "module": "./dist/index.esm.js",

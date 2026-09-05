@@ -1,6 +1,6 @@
 import { type Module, type Registry, type ModulePermissions } from '@levi2ki/rbac-core';
-import { none, some, type Option, match } from 'fp-ts/Option';
-import { pipe } from 'fp-ts/function';
+import { none, some, type Option, match } from 'fp-ts/lib/Option.js';
+import { pipe } from 'fp-ts/lib/function.js';
 import { type GrantState, isResolved } from '../grant-state';
 
 type GenericRegistry = Registry<Record<string, Module<any, string>>>;

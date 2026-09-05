@@ -9,6 +9,6 @@
     "lib": ["es2022", "dom"],
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["jest.config.ts", "src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.type-test.ts", "src/**/*.type-test.tsx", "src/**/*.d.ts"],
+  "include": ["jest.config.ts", "src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.type-test.ts", "src/**/*.type-test.tsx", "src/**/*.d.ts", "src/lib/test-registry.ts"],
   "references": [{ "path": "./tsconfig.lib.json" }]
 }

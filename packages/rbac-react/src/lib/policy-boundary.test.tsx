@@ -2,16 +2,13 @@ import { render, screen } from '@testing-library/react';
 
 import { createExpression, resolved, unresolved } from '@levi2ki/rbac-expression';
 
-import { createPolicyBoundaryFactory } from './policy-boundary';
-import { createReactPolicyContext } from './react-policy-context';
+// eslint-disable-next-line @nx/enforce-module-boundaries -- Verify the public package contract as a consumer.
+import { createReactPolicy, type PolicyBoundaryConfig, type PolicyBoundaryGrants } from '@levi2ki/rbac-react';
 import { testRegistry } from './test-registry';
-import type { PolicyBoundaryConfig, PolicyBoundaryGrants } from './types';
 
 const { and, has } = createExpression(testRegistry);
 const canReadAccountAndWriteDocument = and([has('account.read'), has('document.write')]);
-const policyContext = createReactPolicyContext(testRegistry);
-const { Context, PolicyProvider, useGrantContext, usePolicy } = policyContext;
-const createPolicyBoundary = createPolicyBoundaryFactory(testRegistry, Context, useGrantContext);
+const { PolicyProvider, useGrantContext, usePolicy, createPolicyBoundary } = createReactPolicy(testRegistry);
 
 function ContextProbe() {
   return <output>{JSON.stringify(useGrantContext())}</output>;
