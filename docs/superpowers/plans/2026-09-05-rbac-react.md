@@ -705,7 +705,7 @@ git commit -m "feat(rbac-react): add policy gate"
 - Consumes: `createPolicyBoundary(config)` and `PolicyBoundaryGrants<Reg, Config>` from Task 2.
 - Produces: `withPolicy(config)(WrappedComponent)` with original props and ref plus one consumed policy `grants` prop.
 
-- [ ] **Step 1: Write failing HOC behavior tests**
+- [x] **Step 1: Write failing HOC behavior tests**
 
 Wrap a `forwardRef<HTMLButtonElement, { label: string }>` fixture and verify:
 
@@ -716,7 +716,7 @@ Wrap a `forwardRef<HTMLButtonElement, { label: string }>` fixture and verify:
 - inherited and reset scopes behave exactly as with the direct boundary;
 - `displayName` includes the original display name.
 
-- [ ] **Step 2: Add failing HOC type assertions**
+- [x] **Step 2: Add failing HOC type assertions**
 
 Assert that the wrapped component requires the inferred `provide` grants and retains all original required props. Add an explicit rejected fixture:
 
@@ -731,7 +731,7 @@ withPolicy(config)(ConflictingComponent);
 
 Also verify the returned component accepts the original ref type and rejects an unrelated ref type.
 
-- [ ] **Step 3: Run behavior tests and typecheck to verify RED**
+- [x] **Step 3: Run behavior tests and typecheck to verify RED**
 
 ```bash
 pnpm exec nx test @levi2ki/rbac-react --runInBand --testPathPatterns=with-policy
@@ -740,7 +740,7 @@ pnpm exec tsc -b packages/rbac-react/tsconfig.json
 
 Expected: FAIL because `withPolicy` and its type-level conflict protection do not exist.
 
-- [ ] **Step 4: Implement the HOC as boundary composition**
+- [x] **Step 4: Implement the HOC as boundary composition**
 
 `withPolicy(config)` must call `createPolicyBoundary(config)` once and return a component wrapper built with React `forwardRef`. Infer original props with `ComponentPropsWithoutRef<Component>` and the target ref with `ComponentRef<Component>`.
 
@@ -773,7 +773,7 @@ function wrap<Component extends React.ElementType>(
 >;
 ```
 
-- [ ] **Step 5: Run focused tests, full tests, and typecheck to verify GREEN**
+- [x] **Step 5: Run focused tests, full tests, and typecheck to verify GREEN**
 
 ```bash
 pnpm exec nx test @levi2ki/rbac-react --runInBand --testPathPatterns=with-policy
@@ -783,7 +783,7 @@ pnpm exec tsc -b packages/rbac-react/tsconfig.json
 
 Expected: PASS with the ref pointing to the original target and all negative type assertions consumed.
 
-- [ ] **Step 6: Commit the HOC**
+- [x] **Step 6: Commit the HOC**
 
 ```bash
 git add packages/rbac-react/src
