@@ -5,8 +5,23 @@ import { createExpression, resolved, unresolved } from '@levi2ki/rbac-expression
 // eslint-disable-next-line @nx/enforce-module-boundaries -- Verify the public package contract as a consumer.
 import { createReactPolicy, type RegistryGrantContext } from '@levi2ki/rbac-react';
 
-const testRegistry = register(createModule<'read' | 'write'>()('document'))(
-  register(createModule<'read'>()('account'))(getDefaultRegistry()),
+enum AccountGrant {
+  ADMIN = 'ADMIN',
+}
+
+enum WorkspaceGrant {
+  READ = 'READ',
+}
+
+enum DocumentGrant {
+  READ = 'READ',
+  EDIT = 'EDIT',
+}
+
+const testRegistry = register(createModule<DocumentGrant>()('document'))(
+  register(createModule<WorkspaceGrant>()('workspace'))(
+    register(createModule<AccountGrant>()('account'))(getDefaultRegistry()),
+  ),
 );
 const {
   PolicyProvider,
@@ -16,51 +31,119 @@ const {
   createPolicyBoundary,
   withPolicy,
 } = createReactPolicy(testRegistry);
-const { has, and } = createExpression(testRegistry);
-const canReadDocument = has('document.read');
-const canReadBoth = and([has('account.read'), canReadDocument]);
+const { has, not, and, or } = createExpression(testRegistry);
+const canReadDocument = has('document.READ');
+const canReadWorkspaceDocument = and([has('workspace.READ'), canReadDocument]);
+const canEditDocument = or([
+  has('account.ADMIN'),
+  has('workspace.READ'),
+  and([
+    has('document.EDIT'),
+    not('document.READ'),
+  ]),
+]);
 const foreignRegistry = register(createModule<'read'>()('foreign'))(getDefaultRegistry());
 const foreignPolicy = createExpression(foreignRegistry).has('foreign.read');
 
-function Consumer() {
+function DocumentControls() {
   const context: RegistryGrantContext<typeof testRegistry> = useGrantContext();
   const documentAllowed: boolean = usePolicy(canReadDocument);
-  const bothAllowed: boolean = usePolicy(canReadBoth);
   // @ts-expect-error policies requiring an unknown scope are incompatible
   usePolicy(foreignPolicy);
-  return <output>{String(documentAllowed && bothAllowed)}{context.document.kind}</output>;
+
+  if (context.document.kind === 'unresolved') {
+    return <p>Loading document access…</p>;
+  }
+
+  return documentAllowed ? <button>Open document</button> : null;
 }
 
-<PolicyProvider grants={{ document: resolved(['read']) }}><Consumer /></PolicyProvider>;
+const emptyDocument: RegistryGrantContext<typeof testRegistry>['document'] = resolved([]);
+const loadingDocument: RegistryGrantContext<typeof testRegistry>['document'] = unresolved;
+const rootExampleGrants: RegistryGrantContext<typeof testRegistry> = {
+  account: resolved([AccountGrant.ADMIN]),
+  workspace: unresolved,
+  document: resolved([DocumentGrant.EDIT]),
+};
+void emptyDocument;
+void loadingDocument;
+void canEditDocument(rootExampleGrants);
+
+<PolicyProvider grants={{ account: resolved([AccountGrant.ADMIN]) }}><DocumentControls /></PolicyProvider>;
 <PolicyGate policy={canReadDocument} />;
-<PolicyGate policy={canReadBoth} fallback="Denied">Allowed</PolicyGate>;
+<PolicyGate policy={canReadWorkspaceDocument} fallback={<p>Document unavailable</p>}>
+  <button>Open document</button>
+</PolicyGate>;
+
+type DocumentAccessLoad =
+  | { readonly status: 'loading' }
+  | { readonly status: 'error'; readonly message: string }
+  | {
+      readonly status: 'ready';
+      readonly grants: Partial<RegistryGrantContext<typeof testRegistry>>;
+    };
+
+function DocumentAccessRoot({ access }: { readonly access: DocumentAccessLoad }) {
+  if (access.status === 'loading') return <p>Loading access…</p>;
+  if (access.status === 'error') return <p>{access.message}</p>;
+
+  return <PolicyProvider grants={access.grants}><DocumentControls /></PolicyProvider>;
+}
+
+void DocumentAccessRoot;
 
 // @ts-expect-error root grants are restricted to registry scopes
 <PolicyProvider grants={{ foreign: unresolved }} />;
 
 // @ts-expect-error grants are restricted to the declared vocabulary
-<PolicyProvider grants={{ document: resolved(['delete']) }} />;
+<PolicyProvider grants={{ document: resolved(['DELETE']) }} />;
 
 // @ts-expect-error gates reject policies requiring an unknown scope
 <PolicyGate policy={foreignPolicy} />;
 
-const DocumentBoundary = createPolicyBoundary({
+const IsolatedDocumentBoundary = createPolicyBoundary({
   default: 'reset',
-  scopes: { account: 'inherit', document: 'provide' },
+  scopes: { document: 'provide' },
 } as const);
 
-<DocumentBoundary grants={{ document: resolved(['read']) }} />;
+<PolicyProvider grants={{ workspace: resolved([WorkspaceGrant.READ]) }}>
+  <IsolatedDocumentBoundary grants={{ document: resolved([DocumentGrant.READ]) }}>
+    <DocumentControls />
+  </IsolatedDocumentBoundary>
+</PolicyProvider>;
 
 // @ts-expect-error document is required because its strategy is provide
-<DocumentBoundary grants={{}} />;
+<IsolatedDocumentBoundary grants={{}} />;
 
-const grantsWithInheritedScope = {
-  account: resolved(['read']),
+const grantsWithResetScope = {
+  workspace: resolved([WorkspaceGrant.READ]),
   document: unresolved,
 };
 
-// @ts-expect-error account is inherited and cannot be supplied, including through variables
-<DocumentBoundary grants={grantsWithInheritedScope} />;
+// @ts-expect-error reset scopes cannot be supplied, including through variables
+<IsolatedDocumentBoundary grants={grantsWithResetScope} />;
+
+const OpenDocumentBoundary = createPolicyBoundary({
+  default: 'inherit',
+  scopes: { document: 'provide' },
+} as const);
+
+<PolicyProvider grants={{
+  account: resolved([AccountGrant.ADMIN]),
+  workspace: resolved([WorkspaceGrant.READ]),
+}}>
+  <OpenDocumentBoundary grants={{ document: resolved([DocumentGrant.EDIT]) }}>
+    <DocumentControls />
+  </OpenDocumentBoundary>
+</PolicyProvider>;
+
+const grantsWithInheritedScope = {
+  account: resolved([AccountGrant.ADMIN]),
+  document: unresolved,
+};
+
+// @ts-expect-error inherited scopes cannot be supplied, including through variables
+<OpenDocumentBoundary grants={grantsWithInheritedScope} />;
 
 createPolicyBoundary({
   default: 'reset',
@@ -80,22 +163,26 @@ const policyConfig = {
   scopes: { document: 'provide' },
 } as const;
 
-const RefButton = React.forwardRef<HTMLButtonElement, { readonly label: string }>(
+const DocumentButton = React.forwardRef<HTMLButtonElement, { readonly label: string }>(
   ({ label }, ref) => <button ref={ref}>{label}</button>,
 );
-const SecuredButton = withPolicy(policyConfig)(RefButton);
+const SecuredDocumentButton = withPolicy(policyConfig)(DocumentButton);
 const buttonRef = React.createRef<HTMLButtonElement>();
 
-<SecuredButton label="Save" grants={{ document: resolved(['read']) }} ref={buttonRef} />;
+<SecuredDocumentButton
+  label="Save document"
+  grants={{ document: resolved([DocumentGrant.EDIT]) }}
+  ref={buttonRef}
+/>;
 
 // @ts-expect-error original required props remain required
-<SecuredButton grants={{ document: resolved(['read']) }} ref={buttonRef} />;
+<SecuredDocumentButton grants={{ document: resolved([DocumentGrant.EDIT]) }} ref={buttonRef} />;
 
 // @ts-expect-error provided scopes remain required
-<SecuredButton label="Save" grants={{}} ref={buttonRef} />;
+<SecuredDocumentButton label="Save document" grants={{}} ref={buttonRef} />;
 
 // @ts-expect-error the wrapped component retains its original ref target
-<SecuredButton label="Save" grants={{ document: resolved(['read']) }} ref={React.createRef<HTMLDivElement>()} />;
+<SecuredDocumentButton label="Save document" grants={{ document: resolved([DocumentGrant.EDIT]) }} ref={React.createRef<HTMLDivElement>()} />;
 
 function ConflictingComponent(_props: { readonly grants: string; readonly label: string }) {
   void _props;

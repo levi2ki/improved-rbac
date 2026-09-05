@@ -12,19 +12,19 @@ Instead, some upstream system already resolves access and returns only the effec
 
 Typical example:
 
-- backend receives `current-user`, `projectId`, and `taskId`
-- backend computes effective grants from SSO, project-level rules, and entity-level rules
+- backend receives an account, workspace, and document context
+- backend computes effective grants from identity and scope-specific rules
 - backend returns grants grouped by security scope, such as:
-  - `system`: `[READ_PROJECTS]`
-  - `project`: `[FULL_EDIT_ACCESS]`
-  - `task`: `[EDIT, ISSUE_CREATE]`
+  - `account`: `[ADMIN]`
+  - `workspace`: `[READ]`
+  - `document`: `[READ, EDIT]`
 
 Application code still needs a consistent way to answer questions like:
 
-- can this user see the project list?
-- can this component render edit controls?
-- should this information be hidden entirely?
-- can this request pass a framework guard?
+- can this component read the document?
+- can this component render document editing controls?
+- should this document information be hidden entirely?
+- can this application boundary render its children?
 
 This repository solves that specific problem.
 
@@ -99,6 +99,20 @@ Provides policy expression helpers:
 
 This package builds reusable business rules on top of the registry.
 
+### `@levi2ki/rbac-react`
+
+Provides React providers, hooks, rendering gates, and scoped grant-context
+boundaries:
+
+- `createReactPolicy(registry)`
+- `PolicyProvider`
+- `usePolicy` and `useGrantContext`
+- `PolicyGate`
+- `createPolicyBoundary` and `withPolicy`
+
+This adapter sits above the expression layer. It does not replace backend
+authorization, grant loading, or request-error handling.
+
 ## Mental Model
 
 There are four separate concepts in the architecture:
@@ -128,47 +142,46 @@ import {
   unresolved,
 } from '@levi2ki/rbac-expression';
 
-enum SystemGrant {
-  READ_PROJECTS = 'READ_PROJECTS',
-  FULL_EDIT_ACCESS = 'FULL_EDIT_ACCESS',
+enum AccountGrant {
+  ADMIN = 'ADMIN',
 }
 
-enum ProjectGrant {
-  FULL_EDIT_ACCESS = 'FULL_EDIT_ACCESS',
+enum WorkspaceGrant {
+  READ = 'READ',
 }
 
-enum TaskGrant {
+enum DocumentGrant {
+  READ = 'READ',
   EDIT = 'EDIT',
-  ISSUE_CREATE = 'ISSUE_CREATE',
 }
 
-const registry = register(createModule<TaskGrant>()('task'))(
-  register(createModule<ProjectGrant>()('project'))(
-    register(createModule<SystemGrant>()('system'))(getDefaultRegistry())
+const registry = register(createModule<DocumentGrant>()('document'))(
+  register(createModule<WorkspaceGrant>()('workspace'))(
+    register(createModule<AccountGrant>()('account'))(getDefaultRegistry())
   )
 );
 
 const { has, not, and, or } = createExpression(registry);
 
-export const canSeeProjects = has('system.READ_PROJECTS');
+export const canReadDocument = has('document.READ');
 
-export const canEditTaskAttributes = or([
-  has('system.FULL_EDIT_ACCESS'),
-  has('project.FULL_EDIT_ACCESS'),
+export const canEditDocument = or([
+  has('account.ADMIN'),
+  has('workspace.READ'),
   and([
-    has('task.EDIT'),
-    not('task.ISSUE_CREATE'),
+    has('document.EDIT'),
+    not('document.READ'),
   ]),
 ]);
 
 const grants = {
-  system: resolved([SystemGrant.READ_PROJECTS]),
-  project: unresolved,
-  task: resolved([TaskGrant.EDIT]),
+  account: resolved([AccountGrant.ADMIN]),
+  workspace: unresolved,
+  document: resolved([DocumentGrant.EDIT]),
 };
 
-canSeeProjects(grants); // true
-canEditTaskAttributes(grants); // true
+canReadDocument(grants); // false
+canEditDocument(grants); // true
 ```
 
 ## Typical Usage
@@ -177,7 +190,10 @@ canEditTaskAttributes(grants); // true
 2. Build a typed registry from the vocabulary.
 3. Load current grants dynamically for the relevant runtime context.
 4. Define reusable policy expressions.
-5. Invoke those expressions in UI components, route guards, decorators, or service-level checks.
+5. Place framework adapters above expressions; for React, create a root provider
+   and scoped boundaries where the application needs them.
+6. Invoke those expressions in UI components, adapters, decorators, or
+   service-level checks.
 
 Backend authorization still remains authoritative. This library does not replace backend enforcement. It gives application code a shared and typed way to express business security rules.
 
@@ -192,6 +208,7 @@ At the current stage, expressions use a conservative deny-by-default interpretat
 
 - `packages/rbac-core`
 - `packages/rbac-expression`
+- `packages/rbac-react`
 - `docs/intent-and-scope.md`
 - `docs/design-review.md`
 - `docs/code-review.md`
