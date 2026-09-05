@@ -1,7 +1,7 @@
 import type { Module, ModulePermissions, Registry } from '@levi2ki/rbac-core';
 import type { GrantState, PolicyEvaluator } from '@levi2ki/rbac-expression';
 
-type GenericRegistry = Registry<Record<string, Module<any, string>>>;
+type GenericRegistry = Registry<Record<string, Module<unknown, string>>>;
 
 export type RegistryGrantContext<Reg extends GenericRegistry> = {
   readonly [Scope in Extract<keyof Reg['modules'], string>]: GrantState<
