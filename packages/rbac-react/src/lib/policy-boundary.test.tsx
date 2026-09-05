@@ -171,6 +171,14 @@ describe('createPolicyBoundary', () => {
     ).toThrow('Invalid policy boundary strategy "replace" for scope "account".');
   });
 
+  it('rejects provide as an untyped runtime default strategy', () => {
+    expect(() =>
+      createPolicyBoundary({
+        default: 'provide',
+      } as unknown as PolicyBoundaryConfig<typeof testRegistry>),
+    ).toThrow('Invalid policy boundary default strategy "provide".');
+  });
+
   it('rejects a missing provided grant at render time', () => {
     const Boundary = createPolicyBoundary({
       default: 'inherit',

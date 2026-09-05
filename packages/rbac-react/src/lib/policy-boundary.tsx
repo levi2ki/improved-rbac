@@ -3,6 +3,7 @@ import * as React from 'react';
 import { unresolved } from '@levi2ki/rbac-expression';
 
 import type {
+  BoundaryDefaultStrategy,
   BoundaryStrategy,
   GenericRegistry,
   PolicyBoundaryConfig,
@@ -27,6 +28,14 @@ function assertBoundaryStrategy(strategy: unknown, scope: string): asserts strat
   }
 }
 
+function assertBoundaryDefaultStrategy(
+  strategy: unknown,
+): asserts strategy is BoundaryDefaultStrategy {
+  if (strategy !== 'inherit' && strategy !== 'reset') {
+    throw new Error(`Invalid policy boundary default strategy "${String(strategy)}".`);
+  }
+}
+
 function normalizeBoundaryStrategies<Reg extends GenericRegistry>(
   registry: Reg,
   config: PolicyBoundaryConfig<Reg>,
@@ -34,7 +43,7 @@ function normalizeBoundaryStrategies<Reg extends GenericRegistry>(
   const scopeNames = Object.keys(registry.modules) as ScopeKey<Reg>[];
   const configuredScopes: Partial<Record<ScopeKey<Reg>, BoundaryStrategy>> = config.scopes ?? {};
 
-  assertBoundaryStrategy(config.default, 'default');
+  assertBoundaryDefaultStrategy(config.default);
 
   for (const [scope, strategy] of Object.entries(configuredScopes)) {
     if (!scopeNames.includes(scope as ScopeKey<Reg>)) {
