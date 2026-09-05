@@ -626,7 +626,7 @@ git commit -m "feat(rbac-react): add declarative policy boundaries"
 - Consumes: the exact `usePolicy` function created by the same registry factory.
 - Produces: a registry-bound `PolicyGate` that accepts a ready compatible policy, children, and an optional fallback.
 
-- [ ] **Step 1: Write failing gate tests**
+- [x] **Step 1: Write failing gate tests**
 
 Test separately that:
 
@@ -637,7 +637,7 @@ Test separately that:
 - usage outside `PolicyProvider` throws the missing-provider error;
 - an exception thrown by a policy propagates rather than becoming denial.
 
-- [ ] **Step 2: Run the gate tests and verify RED**
+- [x] **Step 2: Run the gate tests and verify RED**
 
 ```bash
 pnpm exec nx test @levi2ki/rbac-react --runInBand --testPathPatterns=policy-gate
@@ -645,7 +645,7 @@ pnpm exec nx test @levi2ki/rbac-react --runInBand --testPathPatterns=policy-gate
 
 Expected: FAIL because `PolicyGate` is not returned by the factory.
 
-- [ ] **Step 3: Implement the minimal gate factory**
+- [x] **Step 3: Implement the minimal gate factory**
 
 Define props around a ready evaluator:
 
@@ -672,7 +672,7 @@ function PolicyGate<PolicyContext>({
 }
 ```
 
-- [ ] **Step 4: Run focused and full package tests to verify GREEN**
+- [x] **Step 4: Run focused and full package tests to verify GREEN**
 
 ```bash
 pnpm exec nx test @levi2ki/rbac-react --runInBand --testPathPatterns=policy-gate
@@ -681,7 +681,7 @@ pnpm exec nx test @levi2ki/rbac-react --runInBand
 
 Expected: PASS with no swallowed policy exceptions or React warnings.
 
-- [ ] **Step 5: Commit the gate**
+- [x] **Step 5: Commit the gate**
 
 ```bash
 git add packages/rbac-react/src
