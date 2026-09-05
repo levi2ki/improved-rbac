@@ -1,4 +1,12 @@
 const path = require('path');
+const fs = require('fs');
+
+const cleanDist = () => ({
+    name: 'clean-dist',
+    buildStart() {
+        fs.rmSync(path.resolve(__dirname, 'dist'), { recursive: true, force: true });
+    },
+});
 
 module.exports = {
     // Provide additional rollup configuration here. See: https://rollupjs.org/configuration-options
@@ -18,6 +26,7 @@ module.exports = {
     external: ['fp-ts'],
     input: path.resolve(__dirname, `src/index.ts`),
     plugins: [
+        cleanDist(),
         require('@rollup/plugin-commonjs')(),
         require('@rollup/plugin-typescript')({
             tsconfig: path.resolve(__dirname, 'tsconfig.lib.json'),

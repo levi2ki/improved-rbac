@@ -29,7 +29,7 @@
     "release": {
         "projects": ["rbac-expression", "rbac-core"],
         "projectsRelationship": "independent",
-        "releaseTagPattern": "{packageName}-{version}",
+        "releaseTagPattern": "{projectName}-{version}",
         "version": {
             "preVersionCommand": "pnpm dlx nx run-many -t build",
             "conventionalCommits": true,
