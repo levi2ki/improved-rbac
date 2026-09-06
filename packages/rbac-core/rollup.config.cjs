@@ -14,11 +14,6 @@ module.exports = {
     // e.g.
     output: [
         {
-            file: 'dist/index.js',
-            format: 'cjs',
-            sourcemap: false,
-        },
-        {
             file: 'dist/index.esm.js',
             format: 'esm',
             sourcemap: false,
