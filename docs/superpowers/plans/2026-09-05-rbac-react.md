@@ -998,7 +998,7 @@ git commit -m "docs(rbac-react): document React adapter usage"
 - Consumes: the public package tests and build commands from Tasks 1-6.
 - Produces: repeatable CI evidence for both supported React major versions.
 
-- [ ] **Step 1: Verify the peer range before adding CI configuration**
+- [x] **Step 1: Verify the peer range before adding CI configuration**
 
 Run:
 
@@ -1008,7 +1008,7 @@ node -e "const p=require('./packages/rbac-react/package.json'); if(p.peerDepende
 
 Expected: exit zero. This is configuration verification rather than production behavior, so the TDD exception for configuration applies.
 
-- [ ] **Step 2: Add the compatibility matrix job**
+- [x] **Step 2: Add the compatibility matrix job**
 
 Add a separate CI job with matrix values `'18'` and `'19'`. Each isolated matrix run must:
 
@@ -1055,7 +1055,7 @@ Add this sibling job under `jobs`:
         run: pnpm exec nx build @levi2ki/rbac-react
 ```
 
-- [ ] **Step 3: Run the local React 19 verification to reach GREEN**
+- [x] **Step 3: Run the local React 19 verification to reach GREEN**
 
 ```bash
 pnpm exec nx test @levi2ki/rbac-react --runInBand
@@ -1065,7 +1065,7 @@ pnpm exec nx build @levi2ki/rbac-react
 
 Expected: PASS against the workspace's React 19 development dependency. React 18 is verified by the matrix job using the same committed tests and source.
 
-- [ ] **Step 4: Commit compatibility verification**
+- [x] **Step 4: Commit compatibility verification**
 
 ```bash
 git add .github/workflows/ci.yml packages/rbac-react/package.json pnpm-lock.yaml packages/rbac-react/src
