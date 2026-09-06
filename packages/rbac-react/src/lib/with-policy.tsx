@@ -1,23 +1,21 @@
 import * as React from 'react';
 
+import type { createPolicyBoundaryFactory } from './policy-boundary';
 import type {
+  ClosedPolicyBoundaryConfig,
   GenericRegistry,
   PolicyBoundaryConfig,
   PolicyBoundaryGrants,
 } from './types';
 
-type CreatePolicyBoundary<Reg extends GenericRegistry> = <
-  Config extends PolicyBoundaryConfig<Reg>,
->(
-  config: Config,
-) => React.ComponentType<
-  React.PropsWithChildren<{
-    readonly grants: PolicyBoundaryGrants<Reg, Config>;
-  }>
+type CreatePolicyBoundary<Reg extends GenericRegistry> = ReturnType<
+  typeof createPolicyBoundaryFactory<Reg>
 >;
 
+type PropsKeys<Props> = Props extends unknown ? keyof Props : never;
+
 type RejectGrantsProp<Component extends React.ElementType> =
-  'grants' extends keyof React.ComponentPropsWithoutRef<Component> ? never : Component;
+  'grants' extends PropsKeys<React.ComponentPropsWithoutRef<Component>> ? never : Component;
 
 function getDisplayName(Component: React.ElementType): string {
   if (typeof Component === 'string') {
@@ -34,8 +32,10 @@ function getDisplayName(Component: React.ElementType): string {
 export function createWithPolicyFactory<Reg extends GenericRegistry>(
   createPolicyBoundary: CreatePolicyBoundary<Reg>,
 ) {
-  return function withPolicy<Config extends PolicyBoundaryConfig<Reg>>(config: Config) {
-    const Boundary = createPolicyBoundary(config);
+  return function withPolicy<Config extends PolicyBoundaryConfig<Reg>>(
+    config: Config & NoInfer<ClosedPolicyBoundaryConfig<Reg, Config>>,
+  ) {
+    const Boundary = createPolicyBoundary<Config>(config);
 
     return function wrap<Component extends React.ElementType>(
       WrappedComponent: RejectGrantsProp<Component>,

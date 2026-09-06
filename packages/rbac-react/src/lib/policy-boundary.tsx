@@ -5,6 +5,7 @@ import { unresolved } from '@levi2ki/rbac-expression';
 import type {
   BoundaryDefaultStrategy,
   BoundaryStrategy,
+  ClosedPolicyBoundaryConfig,
   GenericRegistry,
   PolicyBoundaryConfig,
   PolicyBoundaryGrants,
@@ -103,7 +104,9 @@ export function createPolicyBoundaryFactory<Reg extends GenericRegistry>(
 ) {
   const scopeNames = Object.keys(registry.modules) as ScopeKey<Reg>[];
 
-  return function createPolicyBoundary<Config extends PolicyBoundaryConfig<Reg>>(config: Config) {
+  return function createPolicyBoundary<Config extends PolicyBoundaryConfig<Reg>>(
+    config: Config & NoInfer<ClosedPolicyBoundaryConfig<Reg, Config>>,
+  ) {
     const strategies = normalizeBoundaryStrategies(registry, config);
 
     function PolicyBoundary({ grants, children }: BoundaryProps<Reg, Config>) {

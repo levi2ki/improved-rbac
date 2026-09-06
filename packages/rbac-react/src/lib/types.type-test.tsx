@@ -3,7 +3,7 @@ import * as React from 'react';
 import { createModule, getDefaultRegistry, register } from '@levi2ki/rbac-core';
 import { createExpression, resolved, unresolved } from '@levi2ki/rbac-expression';
 // eslint-disable-next-line @nx/enforce-module-boundaries -- Verify the public package contract as a consumer.
-import { createReactPolicy, type RegistryGrantContext } from '@levi2ki/rbac-react';
+import { createReactPolicy, type PolicyBoundaryConfig, type RegistryGrantContext } from '@levi2ki/rbac-react';
 
 enum AccountGrant {
   ADMIN = 'ADMIN',
@@ -106,6 +106,23 @@ const IsolatedDocumentBoundary = createPolicyBoundary({
   scopes: { document: 'provide' },
 } as const);
 
+// @ts-expect-error known scope keys must not hide an unknown scope
+createPolicyBoundary({ default: 'reset', scopes: { document: 'provide', foreign: 'reset' } });
+
+// @ts-expect-error the HOC applies the same closed scope contract
+withPolicy({ default: 'reset', scopes: { document: 'provide', foreign: 'reset' } });
+
+const broadPolicyConfig: PolicyBoundaryConfig<typeof testRegistry> = {
+  default: 'reset',
+  scopes: { document: 'provide' },
+};
+const BroadDocumentBoundary = createPolicyBoundary(broadPolicyConfig);
+
+// @ts-expect-error a broad config must not permit missing provide grants
+<BroadDocumentBoundary grants={{}} />;
+
+<BroadDocumentBoundary grants={rootExampleGrants} />;
+
 <PolicyProvider grants={{ workspace: resolved([WorkspaceGrant.READ]) }}>
   <IsolatedDocumentBoundary grants={{ document: resolved([DocumentGrant.READ]) }}>
     <DocumentControls />
@@ -167,6 +184,12 @@ const DocumentButton = React.forwardRef<HTMLButtonElement, { readonly label: str
   ({ label }, ref) => <button ref={ref}>{label}</button>,
 );
 const SecuredDocumentButton = withPolicy(policyConfig)(DocumentButton);
+const BroadSecuredDocumentButton = withPolicy(broadPolicyConfig)(DocumentButton);
+
+// @ts-expect-error the HOC also requires grants for scopes that may provide
+<BroadSecuredDocumentButton label="Save document" grants={{}} />;
+
+<BroadSecuredDocumentButton label="Save document" grants={rootExampleGrants} />;
 const buttonRef = React.createRef<HTMLButtonElement>();
 
 <SecuredDocumentButton
@@ -191,3 +214,14 @@ function ConflictingComponent(_props: { readonly grants: string; readonly label:
 
 // @ts-expect-error withPolicy reserves and consumes the grants prop
 withPolicy(policyConfig)(ConflictingComponent);
+
+function UnionConflictingComponent(_props:
+  | { readonly kind: 'with-grants'; readonly grants: string }
+  | { readonly kind: 'without-grants'; readonly label: string }
+) {
+  void _props;
+  return null;
+}
+
+// @ts-expect-error grants is reserved even when only one props branch declares it
+withPolicy(policyConfig)(UnionConflictingComponent);

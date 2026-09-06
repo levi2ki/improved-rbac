@@ -183,9 +183,11 @@ const OpenDocumentBoundary = createPolicyBoundary({
 </PolicyProvider>;
 ```
 
-The type of `grants` requires every `provide` scope and rejects `inherit` and
-`reset` scopes. That prevents a caller from accidentally supplying a state that
-the boundary will not use.
+For a literal config, the type of `grants` requires every `provide` scope and
+rejects `inherit` and `reset` scopes. Keep strategy literals with `as const`
+or `satisfies PolicyBoundaryConfig<typeof registry>` to preserve this precision.
+If a config is widened to `PolicyBoundaryConfig<typeof registry>`, every scope
+could use `provide`, so grants for every registry scope become required.
 
 ## Rendering policies
 
