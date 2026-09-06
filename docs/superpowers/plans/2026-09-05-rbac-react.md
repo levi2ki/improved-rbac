@@ -1118,6 +1118,6 @@ Use `superpowers:requesting-code-review` against the merge base and current HEAD
 
 Fix every Critical or Important finding through its own RED -> GREEN cycle, then repeat Steps 1 and 2. Record Minor findings explicitly for the final handoff.
 
-- [ ] **Step 5: Finish the development branch**
+- [x] **Step 5: Finish the development branch**
 
 After fresh green verification, invoke `superpowers:finishing-a-development-branch` and present the required integration options. Do not merge, push, or discard without the user's explicit choice.
