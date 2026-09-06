@@ -1085,7 +1085,7 @@ git commit -m "test(rbac-react): verify React version compatibility"
 - Consumes: the complete adapter package, tests, build contract, and documentation.
 - Produces: verified repository state ready for whole-branch review.
 
-- [ ] **Step 1: Run the complete verification suite**
+- [x] **Step 1: Run the complete verification suite**
 
 ```bash
 pnpm exec tsc -b
@@ -1100,7 +1100,7 @@ pnpm exec nx lint @levi2ki/rbac-react
 
 Expected: all commands exit zero with no test failures, build failures, type errors, or lint errors.
 
-- [ ] **Step 2: Verify scope and generated-output hygiene**
+- [x] **Step 2: Verify scope and generated-output hygiene**
 
 ```bash
 git status --short
@@ -1110,11 +1110,11 @@ git diff --stat main...HEAD
 
 Confirm that `dist/`, `tmp/`, `.nx/`, `out-tsc/`, and `test-output/` are not tracked and that no reference-project source or product identifiers were copied.
 
-- [ ] **Step 3: Request whole-branch review**
+- [x] **Step 3: Request whole-branch review**
 
 Use `superpowers:requesting-code-review` against the merge base and current HEAD. The reviewer must check the approved spec, public type safety, context leak prevention, Rules of Hooks compliance, React 18/19 compatibility, ESM packaging, test quality, and documentation obfuscation.
 
-- [ ] **Step 4: Resolve review findings and re-run verification**
+- [x] **Step 4: Resolve review findings and re-run verification**
 
 Fix every Critical or Important finding through its own RED -> GREEN cycle, then repeat Steps 1 and 2. Record Minor findings explicitly for the final handoff.
 
