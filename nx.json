@@ -27,7 +27,7 @@
         }
     },
     "release": {
-        "projects": ["rbac-expression", "rbac-core"],
+        "projects": ["rbac-expression", "rbac-core", "rbac-react"],
         "projectsRelationship": "independent",
         "releaseTagPattern": "{projectName}-{version}",
         "version": {

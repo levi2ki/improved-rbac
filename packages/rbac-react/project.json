@@ -1,0 +1,8 @@
+{
+  "name": "@levi2ki/rbac-react",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/rbac-react/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {}
+}
